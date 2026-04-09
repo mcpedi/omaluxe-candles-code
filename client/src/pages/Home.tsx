@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import ProductCard from "@/components/ProductCard";
@@ -9,6 +10,19 @@ const LIFESTYLE_IMAGE = "https://d2xsxph8kpxj0f.cloudfront.net/31051966353555855
 export default function Home() {
   const { data: featured } = trpc.products.featured.useQuery();
   const { data: bestsellers } = trpc.products.bestsellers.useQuery();
+
+  useEffect(() => {
+    document.title = "OmaLuxe Candles and Scents | Luxury Candles";
+    // Ensure meta description is set for SPA navigation
+    let metaDesc = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.content = "Shop OmaLuxe handcrafted luxury scented candles. Discover mood-inspired fragrances, premium wax candles, and curated scent collections delivered to your door.";
+    }
+    let metaKeywords = document.querySelector<HTMLMetaElement>('meta[name="keywords"]');
+    if (metaKeywords) {
+      metaKeywords.content = "luxury candles, scented candles, handcrafted candles, aromatherapy candles, OmaLuxe, candle shop, home fragrance, soy candles, wax candles, scent collections";
+    }
+  }, []);
 
   return (
     <div className="min-h-screen">

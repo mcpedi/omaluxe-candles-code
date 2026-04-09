@@ -71,3 +71,9 @@
 - [x] Toast notifications for key actions (add to cart, order placed, status update)
 - [x] Admin: send broadcast notification to all users (promotions / new arrivals)
 - [x] Vitest tests for notification router
+
+## SEO Fixes (Homepage /)
+- [x] Set page title to 30–60 characters (keyword-rich)
+- [x] Add meta description (50–160 characters)
+- [x] Add meta keywords tag with relevant candle/scent keywords
+- [x] Set document.title dynamically in Home.tsx for SPA correctness
