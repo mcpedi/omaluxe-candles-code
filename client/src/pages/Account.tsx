@@ -105,7 +105,7 @@ export default function Account() {
                           {order.status}
                         </span>
                         <span className="font-sans text-sm font-medium text-[oklch(0.38_0.07_55)]">
-                          ${parseFloat(order.total).toFixed(2)}
+                          KSh {parseFloat(order.total).toFixed(2)}
                         </span>
                         {expandedOrder === order.id ? (
                           <ChevronUp size={16} className="text-[oklch(0.52_0.02_60)]" />
@@ -151,12 +151,12 @@ function OrderDetailExpanded({ orderId }: { orderId: number }) {
               {item.productName}
               {item.selectedSize ? ` (${item.selectedSize})` : ""} ×{item.quantity}
             </span>
-            <span className="text-[oklch(0.38_0.07_55)]">${parseFloat(item.subtotal).toFixed(2)}</span>
+            <span className="text-[oklch(0.38_0.07_55)]">KSh {parseFloat(item.subtotal).toFixed(2)}</span>
           </div>
         ))}
         <div className="pt-2 border-t border-[oklch(0.88_0.015_75)] flex justify-between font-sans text-sm font-medium">
           <span>Total</span>
-          <span className="text-[oklch(0.38_0.07_55)]">${parseFloat(data.order.total).toFixed(2)}</span>
+          <span className="text-[oklch(0.38_0.07_55)]">KSh {parseFloat(data.order.total).toFixed(2)}</span>
         </div>
         <p className="font-sans text-xs text-[oklch(0.52_0.02_60)] pt-1">
           Ships to: {data.order.shippingAddress}{data.order.city ? `, ${data.order.city}` : ""}

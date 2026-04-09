@@ -116,7 +116,7 @@ export default function ProductDetail() {
 
             {/* Price */}
             <p className="font-sans text-2xl font-medium text-[oklch(0.38_0.07_55)] mb-6">
-              ${effectivePrice.toFixed(2)}
+              KSh {effectivePrice.toFixed(2)}
             </p>
 
             {/* Description */}
@@ -158,7 +158,7 @@ export default function ProductDetail() {
                           : "bg-white text-[oklch(0.38_0.04_60)] border-[oklch(0.88_0.015_75)] hover:border-[oklch(0.38_0.07_55)]"
                       }`}
                     >
-                      {size.label} — ${size.price}
+                      {size.label} — KSh {size.price}
                     </button>
                   ))}
                 </div>

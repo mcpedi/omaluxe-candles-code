@@ -101,12 +101,12 @@ export default function Cart() {
                       )}
                     </div>
                     <p className="font-sans text-sm font-medium text-[oklch(0.38_0.07_55)] shrink-0">
-                      ${(parseFloat(item.price) * item.quantity).toFixed(2)}
+                      KSh {(parseFloat(item.price) * item.quantity).toFixed(2)}
                     </p>
                   </div>
 
                   <p className="font-sans text-xs text-[oklch(0.62_0.02_60)] mt-1">
-                    ${parseFloat(item.price).toFixed(2)} each
+                    KSh {parseFloat(item.price).toFixed(2)} each
                   </p>
 
                   {/* Quantity + Remove */}
@@ -147,22 +147,22 @@ export default function Cart() {
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between font-sans text-sm text-[oklch(0.38_0.04_60)]">
                   <span>Subtotal</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>KSh {subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-sans text-sm text-[oklch(0.38_0.04_60)]">
                   <span>Shipping</span>
-                  <span>{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span>
+                  <span>{shipping === 0 ? "Free" : `KSh ${shipping.toFixed(2)}`}</span>
                 </div>
                 {shipping > 0 && (
                   <p className="font-sans text-[10px] text-[oklch(0.62_0.12_70)]">
-                    Free shipping on orders over $100
+                    Free shipping on orders over KSh 10,000
                   </p>
                 )}
               </div>
               <div className="border-t border-[oklch(0.88_0.015_75)] pt-4 mb-6">
                 <div className="flex justify-between font-sans text-base font-medium text-[oklch(0.18_0.015_60)]">
                   <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>KSh {total.toFixed(2)}</span>
                 </div>
               </div>
               <Link href="/checkout">

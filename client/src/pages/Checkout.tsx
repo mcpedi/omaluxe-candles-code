@@ -220,20 +220,20 @@ export default function Checkout() {
                         <p className="font-sans text-[10px] text-[oklch(0.52_0.02_60)]">Qty: {item.quantity}</p>
                       </div>
                       <p className="font-sans text-xs font-medium text-[oklch(0.38_0.07_55)] shrink-0">
-                        ${(parseFloat(item.price) * item.quantity).toFixed(2)}
+                        KSh {(parseFloat(item.price) * item.quantity).toFixed(2)}
                       </p>
                     </div>
                   ))}
                 </div>
                 <div className="border-t border-[oklch(0.88_0.015_75)] pt-4 space-y-2 mb-5">
                   <div className="flex justify-between font-sans text-sm text-[oklch(0.38_0.04_60)]">
-                    <span>Subtotal</span><span>${subtotal.toFixed(2)}</span>
+                    <span>Subtotal</span><span>KSh {subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between font-sans text-sm text-[oklch(0.38_0.04_60)]">
-                    <span>Shipping</span><span>{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span>
+                    <span>Shipping</span><span>{shipping === 0 ? "Free" : `KSh ${shipping.toFixed(2)}`}</span>
                   </div>
                   <div className="flex justify-between font-sans text-base font-semibold text-[oklch(0.18_0.015_60)] pt-2 border-t border-[oklch(0.88_0.015_75)]">
-                    <span>Total</span><span>${total.toFixed(2)}</span>
+                    <span>Total</span><span>KSh {total.toFixed(2)}</span>
                   </div>
                 </div>
                 <button

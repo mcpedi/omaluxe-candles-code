@@ -75,7 +75,7 @@ export default function OrderConfirmation() {
                       )}
                       <span className="text-[oklch(0.52_0.02_60)] ml-2">×{item.quantity}</span>
                     </div>
-                    <span className="text-[oklch(0.38_0.07_55)] font-medium">${parseFloat(item.subtotal).toFixed(2)}</span>
+                    <span className="text-[oklch(0.38_0.07_55)] font-medium">KSh {parseFloat(item.subtotal).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
@@ -84,13 +84,13 @@ export default function OrderConfirmation() {
             {/* Totals */}
             <div className="space-y-2 font-sans text-sm">
               <div className="flex justify-between text-[oklch(0.38_0.04_60)]">
-                <span>Subtotal</span><span>${parseFloat(order.subtotal).toFixed(2)}</span>
+                <span>Subtotal</span><span>KSh {parseFloat(order.subtotal).toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-[oklch(0.38_0.04_60)]">
-                <span>Shipping</span><span>{parseFloat(order.shipping) === 0 ? "Free" : `$${parseFloat(order.shipping).toFixed(2)}`}</span>
+                <span>Shipping</span><span>{parseFloat(order.shipping) === 0 ? "Free" : `KSh ${parseFloat(order.shipping).toFixed(2)}`}</span>
               </div>
               <div className="flex justify-between font-semibold text-base text-[oklch(0.18_0.015_60)] pt-2 border-t border-[oklch(0.88_0.015_75)]">
-                <span>Total</span><span>${parseFloat(order.total).toFixed(2)}</span>
+                <span>Total</span><span>KSh {parseFloat(order.total).toFixed(2)}</span>
               </div>
             </div>
           </div>

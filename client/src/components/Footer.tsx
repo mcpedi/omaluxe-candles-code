@@ -75,7 +75,7 @@ export default function Footer() {
               </div>
               <div className="flex items-center gap-2 text-[oklch(0.65_0.01_75)]">
                 <Phone size={13} />
-                <span className="font-sans text-sm">+1 (555) 000-0000</span>
+                <span className="font-sans text-sm">+254790876812</span>
               </div>
             </div>
           </div>

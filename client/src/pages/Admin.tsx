@@ -83,7 +83,7 @@ export default function Admin() {
             { label: "Total Products", value: products?.length ?? 0, icon: <Package size={18} strokeWidth={1.5} /> },
             { label: "Total Orders", value: orders?.length ?? 0, icon: <ShoppingBag size={18} strokeWidth={1.5} /> },
             { label: "Pending Orders", value: orders?.filter(o => o.status === "pending").length ?? 0, icon: <Eye size={18} strokeWidth={1.5} /> },
-            { label: "Revenue", value: `$${orders?.reduce((s, o) => s + parseFloat(o.total), 0).toFixed(0) ?? 0}`, icon: <Check size={18} strokeWidth={1.5} /> },
+            { label: "Revenue", value: `KSh ${orders?.reduce((s, o) => s + parseFloat(o.total), 0).toFixed(0) ?? 0}`, icon: <Check size={18} strokeWidth={1.5} /> },
           ].map((stat) => (
             <div key={stat.label} className="bg-white border border-[oklch(0.88_0.015_75)] p-5">
               <div className="flex items-center justify-between mb-2">
@@ -153,7 +153,7 @@ export default function Admin() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 font-sans text-sm text-[oklch(0.38_0.07_55)]">${parseFloat(p.price).toFixed(2)}</td>
+                        <td className="px-4 py-3 font-sans text-sm text-[oklch(0.38_0.07_55)]">KSh {parseFloat(p.price).toFixed(2)}</td>
                         <td className="px-4 py-3 font-sans text-sm text-[oklch(0.38_0.04_60)]">{p.stock}</td>
                         <td className="px-4 py-3">
                           <span className={`font-sans text-[10px] px-2 py-1 ${p.isFeatured ? "bg-[oklch(0.72_0.12_75/0.15)] text-[oklch(0.42_0.1_65)]" : "text-[oklch(0.62_0.02_60)]"}`}>
@@ -228,7 +228,7 @@ export default function Admin() {
                             <p className="font-sans text-sm text-[oklch(0.18_0.015_60)]">{order.customerName}</p>
                             <p className="font-sans text-xs text-[oklch(0.52_0.02_60)]">{order.customerEmail}</p>
                           </td>
-                          <td className="px-4 py-3 font-sans text-sm text-[oklch(0.38_0.07_55)]">${parseFloat(order.total).toFixed(2)}</td>
+                          <td className="px-4 py-3 font-sans text-sm text-[oklch(0.38_0.07_55)]">KSh {parseFloat(order.total).toFixed(2)}</td>
                           <td className="px-4 py-3">
                             <span className={`font-sans text-[10px] px-2 py-1 rounded-full ${statusColors[order.status]}`}>
                               {order.status}
@@ -282,13 +282,13 @@ export default function Admin() {
                     {orderDetail.items.map((item) => (
                       <div key={item.id} className="flex justify-between font-sans text-xs">
                         <span className="text-[oklch(0.38_0.04_60)]">{item.productName} ×{item.quantity}</span>
-                        <span className="text-[oklch(0.38_0.07_55)]">${parseFloat(item.subtotal).toFixed(2)}</span>
+                        <span className="text-[oklch(0.38_0.07_55)]">KSh {parseFloat(item.subtotal).toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
                   <div className="mt-2 pt-2 border-t border-[oklch(0.88_0.015_75)] flex justify-between font-sans text-sm font-medium">
                     <span>Total</span>
-                    <span className="text-[oklch(0.38_0.07_55)]">${parseFloat(orderDetail.order.total).toFixed(2)}</span>
+                    <span className="text-[oklch(0.38_0.07_55)]">KSh {parseFloat(orderDetail.order.total).toFixed(2)}</span>
                   </div>
                 </div>
                 {/* Status update */}

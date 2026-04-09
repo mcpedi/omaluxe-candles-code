@@ -84,7 +84,7 @@ export default function ProductCard({
         )}
         <div className="flex items-center justify-between mt-2">
           <span className="font-sans text-sm font-medium text-[oklch(0.38_0.07_55)]">
-            From ${parseFloat(price).toFixed(2)}
+            From KSh {parseFloat(price).toFixed(2)}
           </span>
           <Link href={`/product/${slug}`}>
             <span className="font-sans text-[10px] tracking-[0.12em] uppercase text-[oklch(0.52_0.02_60)] hover:text-[oklch(0.38_0.07_55)] transition-colors cursor-pointer">

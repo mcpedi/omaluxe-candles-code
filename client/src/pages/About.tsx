@@ -107,7 +107,7 @@ export default function About() {
               <div className="space-y-5">
                 {[
                   { icon: <Mail size={18} strokeWidth={1.5} />, label: "Email", value: "hello@omaluxe.com" },
-                  { icon: <Phone size={18} strokeWidth={1.5} />, label: "Phone", value: "+1 (555) 000-0000" },
+                  { icon: <Phone size={18} strokeWidth={1.5} />, label: "Phone", value: "+254790876812" },
                   { icon: <MapPin size={18} strokeWidth={1.5} />, label: "Location", value: "Available worldwide — we ship globally" },
                   { icon: <Instagram size={18} strokeWidth={1.5} />, label: "Instagram", value: "@omaluxecandles" },
                 ].map((item) => (
