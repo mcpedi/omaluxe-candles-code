@@ -43,39 +43,40 @@
 }
 
 :root {
-  --primary: var(--color-blue-700);
-  --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-blue-600);
-  --sidebar-primary-foreground: var(--color-blue-50);
-  --chart-1: var(--color-blue-300);
-  --chart-2: var(--color-blue-500);
-  --chart-3: var(--color-blue-600);
-  --chart-4: var(--color-blue-700);
-  --chart-5: var(--color-blue-800);
-  --radius: 0.65rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.235 0.015 65);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.235 0.015 65);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.235 0.015 65);
-  --secondary: oklch(0.98 0.001 286.375);
-  --secondary-foreground: oklch(0.4 0.015 65);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.141 0.005 285.823);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.623 0.214 259.815);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.235 0.015 65);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.623 0.214 259.815);
+  /* OmaLuxe Luxury Palette — warm cream, deep gold, soft charcoal */
+  --radius: 0.5rem;
+  --background: oklch(0.98 0.008 85);
+  --foreground: oklch(0.18 0.015 60);
+  --card: oklch(0.99 0.005 80);
+  --card-foreground: oklch(0.18 0.015 60);
+  --popover: oklch(0.99 0.005 80);
+  --popover-foreground: oklch(0.18 0.015 60);
+  --primary: oklch(0.38 0.07 55);
+  --primary-foreground: oklch(0.98 0.005 80);
+  --secondary: oklch(0.94 0.015 80);
+  --secondary-foreground: oklch(0.25 0.02 60);
+  --muted: oklch(0.94 0.012 80);
+  --muted-foreground: oklch(0.52 0.02 60);
+  --accent: oklch(0.72 0.12 75);
+  --accent-foreground: oklch(0.15 0.02 60);
+  --destructive: oklch(0.55 0.2 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.88 0.015 75);
+  --input: oklch(0.92 0.012 80);
+  --ring: oklch(0.55 0.1 60);
+  --chart-1: oklch(0.72 0.12 75);
+  --chart-2: oklch(0.55 0.1 65);
+  --chart-3: oklch(0.42 0.08 55);
+  --chart-4: oklch(0.32 0.06 55);
+  --chart-5: oklch(0.22 0.04 55);
+  --sidebar: oklch(0.97 0.008 85);
+  --sidebar-foreground: oklch(0.18 0.015 60);
+  --sidebar-primary: oklch(0.38 0.07 55);
+  --sidebar-primary-foreground: oklch(0.98 0.005 80);
+  --sidebar-accent: oklch(0.94 0.015 80);
+  --sidebar-accent-foreground: oklch(0.25 0.02 60);
+  --sidebar-border: oklch(0.88 0.015 75);
+  --sidebar-ring: oklch(0.55 0.1 60);
 }
 
 .dark {
@@ -119,6 +120,14 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Jost', 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -169,9 +178,90 @@
 
   @media (min-width: 1024px) {
     .container {
-      padding-left: 2rem; /* 32px - desktop padding */
+      padding-left: 2rem;
       padding-right: 2rem;
-      max-width: 1280px; /* Standard content width */
+      max-width: 1280px;
     }
   }
 }
+
+/* OmaLuxe luxury utilities */
+.font-serif {
+  font-family: 'Cormorant Garamond', 'Georgia', serif !important;
+}
+.font-sans {
+  font-family: 'Jost', 'Inter', sans-serif !important;
+}
+.text-gold {
+  color: oklch(0.62 0.12 70);
+}
+.text-gold-gradient {
+  background: linear-gradient(135deg, oklch(0.72 0.12 75), oklch(0.52 0.1 60));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.btn-luxury {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 2rem;
+  font-family: 'Jost', 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: oklch(0.38 0.07 55);
+  color: oklch(0.98 0.005 80);
+  border: 1px solid oklch(0.38 0.07 55);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.btn-luxury:hover {
+  background: oklch(0.28 0.05 55);
+  border-color: oklch(0.28 0.05 55);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px oklch(0.38 0.07 55 / 0.25);
+}
+.btn-luxury-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 2rem;
+  font-family: 'Jost', 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: transparent;
+  color: oklch(0.38 0.07 55);
+  border: 1px solid oklch(0.38 0.07 55);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.btn-luxury-outline:hover {
+  background: oklch(0.38 0.07 55);
+  color: oklch(0.98 0.005 80);
+  transform: translateY(-1px);
+}
+.card-hover {
+  transition: all 0.35s ease-out;
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 48px oklch(0.18 0.015 60 / 0.12);
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.7s ease-out forwards;
+}
+.animate-delay-100 { animation-delay: 0.1s; }
+.animate-delay-200 { animation-delay: 0.2s; }
+.animate-delay-300 { animation-delay: 0.3s; }
+.animate-delay-400 { animation-delay: 0.4s; }
+html { scroll-behavior: smooth; }
