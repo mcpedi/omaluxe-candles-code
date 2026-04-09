@@ -53,3 +53,21 @@
 - [x] Vitest: cart router tests
 - [x] Vitest: auth tests
 - [x] Vitest: AI recommendation tests
+
+## Custom Notification System
+- [x] DB schema: notifications table (userId, type, title, message, isRead, createdAt)
+- [x] DB schema: notification_preferences table (userId, orderUpdates, promotions, newArrivals)
+- [x] Run migration and apply SQL for new tables
+- [x] tRPC router: notifications.list (get user's notifications)
+- [x] tRPC router: notifications.markRead (mark one or all as read)
+- [x] tRPC router: notifications.preferences.get / update
+- [x] Auto-create in-app notification for customer on order placement
+- [x] Auto-create in-app notification for customer on order status change (admin updates)
+- [x] Owner push notification on new order (already exists, enhance with structured details)
+- [x] In-app notification bell icon in Navbar with unread count badge
+- [x] Notification dropdown/panel showing recent notifications
+- [x] Mark all as read button in notification panel
+- [x] Customer notification preferences page (opt in/out of order updates, promotions, new arrivals)
+- [x] Toast notifications for key actions (add to cart, order placed, status update)
+- [x] Admin: send broadcast notification to all users (promotions / new arrivals)
+- [x] Vitest tests for notification router

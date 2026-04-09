@@ -1,11 +1,12 @@
 import { trpc } from "@/lib/trpc";
+import AdminBroadcast from "@/components/AdminBroadcast";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useState } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import { Plus, Edit2, Trash2, Package, ShoppingBag, Eye, X, Check } from "lucide-react";
 
-type AdminTab = "products" | "orders";
+type AdminTab = "products" | "orders" | "notifications";
 
 export default function Admin() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -96,7 +97,7 @@ export default function Admin() {
 
         {/* Tabs */}
         <div className="flex gap-0 border-b border-[oklch(0.88_0.015_75)] mb-6">
-          {(["products", "orders"] as AdminTab[]).map((t) => (
+          {(["products", "orders", "notifications"] as AdminTab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -106,7 +107,7 @@ export default function Admin() {
                   : "border-transparent text-[oklch(0.52_0.02_60)] hover:text-[oklch(0.18_0.015_60)]"
               }`}
             >
-              {t === "products" ? "Products" : "Orders"}
+              {t === "products" ? "Products" : t === "orders" ? "Orders" : "Notifications"}
             </button>
           ))}
         </div>
@@ -307,15 +308,29 @@ export default function Admin() {
             )}
           </div>
         )}
+
+        {/* Notifications Tab */}
+        {tab === "notifications" && (
+          <div className="max-w-2xl">
+            <div className="mb-6">
+              <h2 className="font-serif text-xl font-medium text-[oklch(0.18_0.015_60)] mb-1">Broadcast Notifications</h2>
+              <p className="font-sans text-xs text-[oklch(0.52_0.02_60)]">
+                Send in-app notifications to all registered customers instantly.
+              </p>
+            </div>
+            <AdminBroadcast />
+          </div>
+        )}
       </div>
 
-      {/* Product Form Modal */}
       {showProductForm && (
         <ProductFormModal
           product={editingProduct}
-          onClose={() => { setShowProductForm(false); setEditingProduct(null); }}
+          onClose={() => {
+            setShowProductForm(false);
+            setEditingProduct(null);
+          }}
           onSuccess={() => {
-            utils.products.list.invalidate();
             setShowProductForm(false);
             setEditingProduct(null);
           }}

@@ -1,6 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, cartItems, categories, orderItems, orders, products, users } from "../drizzle/schema";
+import { InsertUser, cartItems, categories, orderItems, orders, products, users, notifications, notificationPreferences, InsertNotification } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -354,4 +354,92 @@ export async function seedProducts() {
   ];
 
   await db.insert(products).values(productData);
+}
+
+// ── Notification helpers ─────────────────────────────────────────────────────
+
+export async function createNotification(data: InsertNotification): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(notifications).values(data);
+}
+
+export async function getNotificationsForUser(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(notifications)
+    .where(eq(notifications.userId, userId))
+    .orderBy(desc(notifications.createdAt))
+    .limit(50);
+}
+
+export async function getUnreadCount(userId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const rows = await db
+    .select()
+    .from(notifications)
+    .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+  return rows.length;
+}
+
+export async function markNotificationRead(id: number, userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .update(notifications)
+    .set({ isRead: true })
+    .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
+}
+
+export async function markAllNotificationsRead(userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .update(notifications)
+    .set({ isRead: true })
+    .where(eq(notifications.userId, userId));
+}
+
+export async function getNotificationPreferences(userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db
+    .select()
+    .from(notificationPreferences)
+    .where(eq(notificationPreferences.userId, userId))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function upsertNotificationPreferences(
+  userId: number,
+  prefs: { orderUpdates: boolean; promotions: boolean; newArrivals: boolean }
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .insert(notificationPreferences)
+    .values({ userId, ...prefs })
+    .onDuplicateKeyUpdate({ set: prefs });
+}
+
+export async function getAllUsersForBroadcast() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({ id: users.id }).from(users);
+}
+
+export async function getUsersWithPreference(
+  pref: "orderUpdates" | "promotions" | "newArrivals"
+) {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .select({ userId: notificationPreferences.userId })
+    .from(notificationPreferences)
+    .where(eq(notificationPreferences[pref], true));
+  return rows.map((r) => r.userId);
 }

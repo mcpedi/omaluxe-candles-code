@@ -103,3 +103,29 @@ export const orderItems = mysqlTable("order_items", {
 });
 
 export type OrderItem = typeof orderItems.$inferSelect;
+
+export const notifications = mysqlTable("notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  type: mysqlEnum("type", ["order_placed", "order_updated", "promotion", "new_arrival", "system"]).notNull(),
+  title: varchar("title", { length: 256 }).notNull(),
+  message: text("message").notNull(),
+  isRead: boolean("isRead").default(false).notNull(),
+  orderId: int("orderId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;
+
+export const notificationPreferences = mysqlTable("notification_preferences", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  orderUpdates: boolean("orderUpdates").default(true).notNull(),
+  promotions: boolean("promotions").default(true).notNull(),
+  newArrivals: boolean("newArrivals").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type NotificationPreference = typeof notificationPreferences.$inferSelect;

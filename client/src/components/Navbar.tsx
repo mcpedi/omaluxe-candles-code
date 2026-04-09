@@ -1,4 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import NotificationPanel from "./NotificationPanel";
 import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { ShoppingBag, Menu, X, User, LogOut, Settings } from "lucide-react";
@@ -79,6 +80,9 @@ export default function Navbar() {
 
           {/* Right actions */}
           <div className="flex items-center gap-4">
+            {/* Notification Bell */}
+            <NotificationPanel />
+
             {/* Cart */}
             <Link href="/cart">
               <button className={`relative p-2 transition-colors ${scrolled ? 'text-[oklch(0.38_0.04_60)] hover:text-[oklch(0.18_0.015_60)]' : 'text-white/80 hover:text-white'}`}>

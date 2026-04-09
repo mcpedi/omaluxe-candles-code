@@ -17,6 +17,7 @@ import Collections from "./pages/Collections";
 import About from "./pages/About";
 import Account from "./pages/Account";
 import Admin from "./pages/Admin";
+import NotificationPreferences from "./pages/NotificationPreferences";
 
 function Router() {
   return (
@@ -31,6 +32,7 @@ function Router() {
       <Route path="/about" component={About} />
       <Route path="/account" component={Account} />
       <Route path="/admin" component={Admin} />
+      <Route path="/account/notifications" component={NotificationPreferences} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

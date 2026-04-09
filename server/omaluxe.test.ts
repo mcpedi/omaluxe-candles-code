@@ -60,6 +60,14 @@ vi.mock("./db", () => ({
   getAllOrders: vi.fn().mockResolvedValue([]),
   updateOrderStatus: vi.fn().mockResolvedValue(undefined),
   seedProducts: vi.fn().mockResolvedValue(undefined),
+  createNotification: vi.fn().mockResolvedValue(undefined),
+  getNotificationsForUser: vi.fn().mockResolvedValue([]),
+  getUnreadCount: vi.fn().mockResolvedValue(0),
+  markNotificationRead: vi.fn().mockResolvedValue(undefined),
+  markAllNotificationsRead: vi.fn().mockResolvedValue(undefined),
+  getNotificationPreferences: vi.fn().mockResolvedValue(null),
+  upsertNotificationPreferences: vi.fn().mockResolvedValue(undefined),
+  getAllUsersForBroadcast: vi.fn().mockResolvedValue([{ id: 1 }, { id: 2 }]),
 }));
 
 vi.mock("./_core/notification", () => ({

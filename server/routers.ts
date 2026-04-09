@@ -14,18 +14,26 @@ import {
   deleteProduct,
   getAllOrders,
   getAllProducts,
+  getAllUsersForBroadcast,
   getBestsellerProducts,
   getCartItems,
   getFeaturedProducts,
+  getNotificationPreferences,
+  getNotificationsForUser,
   getOrderWithItems,
   getOrdersByUser,
   getProductById,
   getProductBySlug,
+  getUnreadCount,
+  markAllNotificationsRead,
+  markNotificationRead,
+  createNotification,
   removeCartItem,
   seedProducts,
   updateCartItem,
   updateOrderStatus,
   updateProduct,
+  upsertNotificationPreferences,
 } from "./db";
 
 // Admin guard middleware
@@ -222,6 +230,15 @@ export const appRouter = router({
           content: `**New order placed on OmaLuxe Candles and Scents!**\n\n**Customer:** ${input.customerName}\n**Email:** ${input.customerEmail}\n**Phone:** ${input.customerPhone || "N/A"}\n**Shipping Address:** ${input.shippingAddress}, ${input.city || ""}, ${input.country || ""} ${input.postalCode || ""}\n\n**Order Items:**\n${itemsList}\n\n**Subtotal:** $${input.subtotal}\n**Shipping:** $${input.shipping}\n**Total: $${input.total}**\n\n**Order Notes:** ${input.notes || "None"}\n\nOrder ID: #${orderId}`,
         });
 
+        // Create in-app notification for customer
+        await createNotification({
+          userId: ctx.user.id,
+          type: "order_placed",
+          title: `Order #${orderId} Confirmed!`,
+          message: `Thank you, ${input.customerName}! Your order of ${items.length} item${items.length > 1 ? "s" : ""} totalling $${input.total} has been placed successfully. We'll begin preparing your candles right away.`,
+          orderId,
+        });
+
         return { success: true, orderId };
       }),
     myOrders: protectedProcedure.query(async ({ ctx }) => {
@@ -256,7 +273,100 @@ export const appRouter = router({
       )
       .mutation(async ({ input }) => {
         await updateOrderStatus(input.id, input.status);
+        // Notify the customer about status change
+        const orderData = await getOrderWithItems(input.id);
+        if (orderData) {
+          const statusMessages: Record<string, string> = {
+            processing: "Your order is now being processed and your candles are being prepared with care.",
+            shipped: "Great news! Your OmaLuxe order is on its way. Expect delivery within 3–5 business days.",
+            delivered: "Your OmaLuxe order has been delivered. We hope you love every scent!",
+            cancelled: "Your order has been cancelled. If you have questions, please contact us.",
+            pending: "Your order is pending confirmation.",
+          };
+          const statusLabels: Record<string, string> = {
+            processing: "Order Being Processed",
+            shipped: "Order Shipped!",
+            delivered: "Order Delivered!",
+            cancelled: "Order Cancelled",
+            pending: "Order Pending",
+          };
+          await createNotification({
+            userId: orderData.order.userId,
+            type: "order_updated",
+            title: statusLabels[input.status] ?? `Order #${input.id} Updated`,
+            message: statusMessages[input.status] ?? `Your order status has been updated to ${input.status}.`,
+            orderId: input.id,
+          });
+        }
         return { success: true };
+      }),
+  }),
+
+  // ── Notifications ────────────────────────────────────────────────────────────
+  notifications: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getNotificationsForUser(ctx.user.id);
+    }),
+    unreadCount: protectedProcedure.query(async ({ ctx }) => {
+      const count = await getUnreadCount(ctx.user.id);
+      return { count };
+    }),
+    markRead: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        await markNotificationRead(input.id, ctx.user.id);
+        return { success: true };
+      }),
+    markAllRead: protectedProcedure.mutation(async ({ ctx }) => {
+      await markAllNotificationsRead(ctx.user.id);
+      return { success: true };
+    }),
+    preferences: router({
+      get: protectedProcedure.query(async ({ ctx }) => {
+        const prefs = await getNotificationPreferences(ctx.user.id);
+        // Return defaults if not set
+        return prefs ?? { orderUpdates: true, promotions: true, newArrivals: true };
+      }),
+      update: protectedProcedure
+        .input(
+          z.object({
+            orderUpdates: z.boolean(),
+            promotions: z.boolean(),
+            newArrivals: z.boolean(),
+          })
+        )
+        .mutation(async ({ ctx, input }) => {
+          await upsertNotificationPreferences(ctx.user.id, input);
+          return { success: true };
+        }),
+    }),
+    // Admin: broadcast a notification to all users (promotions / new arrivals)
+    broadcast: adminProcedure
+      .input(
+        z.object({
+          type: z.enum(["promotion", "new_arrival", "system"]),
+          title: z.string().min(1).max(256),
+          message: z.string().min(1),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const allUsers = await getAllUsersForBroadcast();
+        await Promise.all(
+          allUsers.map((u) =>
+            createNotification({
+              userId: u.id,
+              type: input.type,
+              title: input.title,
+              message: input.message,
+            })
+          )
+        );
+        // Also push to owner via Manus notification
+        await notifyOwner({
+          title: `📢 Broadcast sent: ${input.title}`,
+          content: `A ${input.type} notification was broadcast to ${allUsers.length} users.\n\nMessage: ${input.message}`,
+        });
+        return { success: true, sentTo: allUsers.length };
       }),
   }),
 
