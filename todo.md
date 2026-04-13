@@ -81,3 +81,6 @@
 ## Currency & Contact Updates
 - [x] Change currency symbol from $ to KSh across all pages (Cart, Checkout, ProductCard, ProductDetail, Admin, OrderConfirmation)
 - [x] Update contact phone number to +254790876812 in About/Contact page and Footer
+
+## WhatsApp Floating Button
+- [ ] Add floating WhatsApp chat button linking to +254790876812
