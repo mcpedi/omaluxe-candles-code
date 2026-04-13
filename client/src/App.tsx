@@ -18,6 +18,7 @@ import About from "./pages/About";
 import Account from "./pages/Account";
 import Admin from "./pages/Admin";
 import NotificationPreferences from "./pages/NotificationPreferences";
+import WhatsAppButton from "./components/WhatsAppButton";
 
 function Router() {
   return (
@@ -53,6 +54,7 @@ function App() {
             <Footer />
           </div>
           <ScentAdvisor />
+          <WhatsAppButton />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

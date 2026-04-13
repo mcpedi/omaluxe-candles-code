@@ -83,4 +83,7 @@
 - [x] Update contact phone number to +254790876812 in About/Contact page and Footer
 
 ## WhatsApp Floating Button
-- [ ] Add floating WhatsApp chat button linking to +254790876812
+- [x] Add floating WhatsApp chat button linking to +254790876812
+
+## Google Search Console
+- [x] Upload Google verification file (googlef64e420495b2f575.html) to public folder
