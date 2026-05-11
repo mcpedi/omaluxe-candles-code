@@ -62,10 +62,8 @@ const injectAnalyticsScript = () => {
   script.defer = true;
   script.src = `${endpoint.replace(/\/$/, "")}/umami`;
   script.dataset.websiteId = websiteId;
-  document.body.appendChild(script);
+  document.head.appendChild(script);
 };
-
-injectAnalyticsScript();
 
 createRoot(document.getElementById("root")!).render(
   <trpc.Provider client={trpcClient} queryClient={queryClient}>
@@ -74,3 +72,5 @@ createRoot(document.getElementById("root")!).render(
     </QueryClientProvider>
   </trpc.Provider>
 );
+
+injectAnalyticsScript();
