@@ -361,7 +361,7 @@ export const appRouter = router({
             })
           )
         );
-        // Also push to owner via Manus notification
+        // Also push to owner via Jacks tech notification
         await notifyOwner({
           title: `📢 Broadcast sent: ${input.title}`,
           content: `A ${input.type} notification was broadcast to ${allUsers.length} users.\n\nMessage: ${input.message}`,

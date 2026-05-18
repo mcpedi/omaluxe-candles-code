@@ -36,7 +36,7 @@
 - [x] Product recommendation output linked to catalog
 
 ## Auth
-- [x] Login / Sign up flow via Manus OAuth
+- [x] Login / Sign up flow via Jacks tech OAuth
 - [x] Protected routes for account and admin pages
 - [x] Role-based admin access
 

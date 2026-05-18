@@ -1,5 +1,5 @@
 /**
- * Manus Debug Collector (agent-friendly)
+ * Jacks tech Debug Collector (agent-friendly)
  *
  * Captures:
  * 1) Console logs
@@ -807,7 +807,7 @@
   try {
     installUiEventListeners();
   } catch (e) {
-    console.warn("[Manus] Failed to install UI listeners:", e);
+    console.warn("[Jacks tech] Failed to install UI listeners:", e);
   }
 
   // Mark as initialized
@@ -817,5 +817,5 @@
     forceReport: reportLogs,
   };
 
-  console.debug("[Manus] Debug collector initialized (no rrweb, UI events only)");
+  console.debug("[Jacks tech] Debug collector initialized (no rrweb, UI events only)");
 })();
