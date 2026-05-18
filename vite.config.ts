@@ -76,7 +76,7 @@ function writeToLogFile(source: LogSource, entries: unknown[]) {
  */
 function vitePluginJacksTechDebugCollector(): Plugin {
   return {
-    name: "manus-debug-collector",
+    name: "jacks-tech-debug-collector",
 
     transformIndexHtml(html) {
       if (process.env.NODE_ENV === "production") {
