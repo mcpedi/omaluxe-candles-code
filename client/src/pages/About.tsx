@@ -3,6 +3,10 @@ import { Mail, Phone, MapPin, Instagram } from "lucide-react";
 const HERO_IMAGE = "https://d2xsxph8kpxj0f.cloudfront.net/310519663535558553/KyKey2VrFEZNwKpbpdN6tN/candle-3_c4b79e22.jpg";
 const STORY_IMAGE = "https://d2xsxph8kpxj0f.cloudfront.net/310519663535558553/KyKey2VrFEZNwKpbpdN6tN/candle-5_a297d52f.jpg";
 
+export const CONTACT_EMAIL = "omaluxescentskenya@gmail.com";
+export const CONTACT_PHONE = "+254778758364";
+export const CONTACT_WHATSAPP = "254778758364"; // Without + for WhatsApp links
+
 export default function About() {
   return (
     <div className="min-h-screen">
@@ -106,8 +110,8 @@ export default function About() {
               </p>
               <div className="space-y-5">
                 {[
-                  { icon: <Mail size={18} strokeWidth={1.5} />, label: "Email", value: "hello@omaluxe.com" },
-                  { icon: <Phone size={18} strokeWidth={1.5} />, label: "Phone", value: "+254790876812" },
+                  { icon: <Mail size={18} strokeWidth={1.5} />, label: "Email", value: "omaluxescentskenya@gmail.com" },
+                  { icon: <Phone size={18} strokeWidth={1.5} />, label: "Phone", value: "+254778758364" },
                   { icon: <MapPin size={18} strokeWidth={1.5} />, label: "Location", value: "Available worldwide — we ship globally" },
                   { icon: <Instagram size={18} strokeWidth={1.5} />, label: "Instagram", value: "@omaluxecandles" },
                 ].map((item) => (

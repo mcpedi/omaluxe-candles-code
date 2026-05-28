@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { MessageCircle, X } from "lucide-react";
 
-const PHONE = "254790876812";
+const PHONE = "254778758364";
 const DEFAULT_MESSAGE = "Hi OmaLuxe! I'd love to know more about your candles and scents.";
 
 export default function WhatsAppButton() {

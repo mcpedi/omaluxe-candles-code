@@ -22,7 +22,7 @@ export default function Footer() {
                 className="w-9 h-9 rounded-full border border-[oklch(0.72_0.12_75/0.3)] flex items-center justify-center text-[oklch(0.72_0.12_75)] hover:bg-[oklch(0.72_0.12_75)] hover:text-white transition-all duration-200">
                 <Instagram size={15} />
               </a>
-              <a href="mailto:hello@omaluxe.com"
+              <a href="mailto:omaluxescentskenya@gmail.com"
                 className="w-9 h-9 rounded-full border border-[oklch(0.72_0.12_75/0.3)] flex items-center justify-center text-[oklch(0.72_0.12_75)] hover:bg-[oklch(0.72_0.12_75)] hover:text-white transition-all duration-200">
                 <Mail size={15} />
               </a>
@@ -71,11 +71,11 @@ export default function Footer() {
             <div className="mt-6 space-y-2">
               <div className="flex items-center gap-2 text-[oklch(0.65_0.01_75)]">
                 <Mail size={13} />
-                <span className="font-sans text-sm">hello@omaluxe.com</span>
+                <span className="font-sans text-sm">omaluxescentskenya@gmail.com</span>
               </div>
               <div className="flex items-center gap-2 text-[oklch(0.65_0.01_75)]">
                 <Phone size={13} />
-                <span className="font-sans text-sm">+254790876812</span>
+                <span className="font-sans text-sm">+254778758364</span>
               </div>
             </div>
           </div>

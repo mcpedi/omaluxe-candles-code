@@ -87,3 +87,7 @@
 
 ## Google Search Console
 - [x] Upload Google verification file (googlef64e420495b2f575.html) to public folder
+
+## Email & WhatsApp Updates
+- [x] Update contact email to omaluxescentskenya@gmail.com across About, Footer, and contact pages
+- [x] Update WhatsApp number to 0778758364 (international: +254778758364) in WhatsAppButton and contact pages
