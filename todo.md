@@ -91,3 +91,9 @@
 ## Email & WhatsApp Updates
 - [x] Update contact email to omaluxescentskenya@gmail.com across About, Footer, and contact pages
 - [x] Update WhatsApp number to 0778758364 (international: +254778758364) in WhatsAppButton and contact pages
+
+## Image Upload Feature
+- [x] Create image upload component for Admin Panel
+- [x] Add upload handler to backend (tRPC router)
+- [x] Integrate image upload into product form (add and edit)
+- [x] Show image preview in product form

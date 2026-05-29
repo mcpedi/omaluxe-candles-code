@@ -6,6 +6,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { notifyOwner } from "./_core/notification";
 import { invokeLLM } from "./_core/llm";
+import { storagePut } from "./storage";
 import {
   addCartItem,
   clearCart,
@@ -130,6 +131,46 @@ export const appRouter = router({
       await deleteProduct(input.id);
       return { success: true };
     }),
+    uploadImage: adminProcedure
+      .input(
+        z.object({
+          imageData: z.string(), // base64 encoded image
+          fileName: z.string(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        try {
+          // Convert base64 to buffer
+          const buffer = Buffer.from(input.imageData.split(',')[1] || input.imageData, 'base64');
+          
+          // Determine MIME type from file extension
+          const ext = input.fileName.split('.').pop()?.toLowerCase() || 'jpg';
+          const mimeTypeMap: Record<string, string> = {
+            'jpg': 'image/jpeg',
+            'jpeg': 'image/jpeg',
+            'png': 'image/png',
+            'gif': 'image/gif',
+            'webp': 'image/webp',
+            'svg': 'image/svg+xml',
+          };
+          const mimeType = mimeTypeMap[ext] || 'image/jpeg';
+          
+          // Generate unique filename
+          const timestamp = Date.now();
+          const randomSuffix = Math.random().toString(36).substring(7);
+          const key = `products/${timestamp}-${randomSuffix}.${ext}`;
+          
+          // Upload to S3
+          const { url } = await storagePut(key, buffer, mimeType);
+          
+          return { url };
+        } catch (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to upload image'
+          });
+        }
+      }),
   }),
 
   // ── Cart ────────────────────────────────────────────────────────────────────

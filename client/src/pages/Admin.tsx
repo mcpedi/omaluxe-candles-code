@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import { Plus, Edit2, Trash2, Package, ShoppingBag, Eye, X, Check } from "lucide-react";
+import ImageUploadField from "@/components/ImageUploadField";
 
 type AdminTab = "products" | "orders" | "notifications";
 
@@ -402,7 +403,7 @@ function ProductFormModal({ product, onClose, onSuccess }: { product: any; onClo
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Price ($) *</label>
+              <label className={labelClass}>Price (KSh) *</label>
               <input type="text" required value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className={inputClass} />
             </div>
             <div>
@@ -411,8 +412,7 @@ function ProductFormModal({ product, onClose, onSuccess }: { product: any; onClo
             </div>
           </div>
           <div>
-            <label className={labelClass}>Image URL</label>
-            <input type="text" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} className={inputClass} />
+            <ImageUploadField value={form.imageUrl} onChange={(url) => setForm({ ...form, imageUrl: url })} />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
