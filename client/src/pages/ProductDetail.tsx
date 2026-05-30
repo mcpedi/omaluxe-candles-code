@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useParams, Link } from "wouter";
 import { Minus, Plus, ShoppingBag, Clock, Leaf, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
+import WishlistButton from "@/components/WishlistButton";
 
 export default function ProductDetail() {
   const params = useParams<{ slug: string }>();
@@ -187,15 +188,18 @@ export default function ProductDetail() {
               </div>
             </div>
 
-            {/* Add to cart */}
-            <button
-              onClick={handleAddToCart}
-              disabled={addToCart.isPending}
-              className="btn-luxury flex items-center justify-center gap-3 w-full md:w-auto"
-            >
-              <ShoppingBag size={16} />
-              {addToCart.isPending ? "Adding..." : "Add to Cart"}
-            </button>
+            {/* Add to cart & Wishlist */}
+            <div className="flex gap-3 items-center">
+              <button
+                onClick={handleAddToCart}
+                disabled={addToCart.isPending}
+                className="btn-luxury flex items-center justify-center gap-3 flex-1 md:flex-none"
+              >
+                <ShoppingBag size={16} />
+                {addToCart.isPending ? "Adding..." : "Add to Cart"}
+              </button>
+              <WishlistButton productId={product.id} variant="button" />
+            </div>
 
             {/* Natural badge */}
             <div className="flex items-center gap-2 mt-6 font-sans text-xs text-[oklch(0.52_0.02_60)]">

@@ -35,6 +35,11 @@ import {
   updateOrderStatus,
   updateProduct,
   upsertNotificationPreferences,
+  addToWishlist,
+  removeFromWishlist,
+  getWishlistItems,
+  isProductWishlisted,
+  getWishlistCount,
 } from "./db";
 
 // Admin guard middleware
@@ -446,9 +451,45 @@ Always end with an invitation to explore the full collection or ask more questio
 
         const rawContent = response.choices?.[0]?.message?.content;
     const content = typeof rawContent === "string" ? rawContent : "I'd love to help you find the perfect scent. Could you tell me what mood or atmosphere you're hoping to create?";
-        return { content };
+                return { content };
       }),
   }),
-});
 
+  // ── Wishlist ────────────────────────────────────────────────────────────────
+  wishlist: router({
+    add: protectedProcedure
+      .input(z.object({ productId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        await addToWishlist(ctx.user.id, input.productId);
+        return { success: true };
+      }),
+    remove: protectedProcedure
+      .input(z.object({ productId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        await removeFromWishlist(ctx.user.id, input.productId);
+        return { success: true };
+      }),
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const items = await getWishlistItems(ctx.user.id);
+      // Enrich with product info
+      const enriched = await Promise.all(
+        items.map(async (item) => {
+          const product = await getProductById(item.productId);
+          return { ...item, product };
+        })
+      );
+      return enriched;
+    }),
+    isWishlisted: protectedProcedure
+      .input(z.object({ productId: z.number() }))
+      .query(async ({ input, ctx }) => {
+        const result = await isProductWishlisted(ctx.user.id, input.productId);
+        return { isWishlisted: result };
+      }),
+    count: protectedProcedure.query(async ({ ctx }) => {
+      const count = await getWishlistCount(ctx.user.id);
+      return { count };
+    }),
+  }),
+});
 export type AppRouter = typeof appRouter;

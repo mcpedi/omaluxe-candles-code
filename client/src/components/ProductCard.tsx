@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { ShoppingBag } from "lucide-react";
+import WishlistButton from "./WishlistButton";
 
 interface ProductCardProps {
   id: number;
@@ -11,9 +12,11 @@ interface ProductCardProps {
   isBestseller?: boolean;
   isFeatured?: boolean;
   onAddToCart?: () => void;
+  showWishlist?: boolean;
 }
 
 export default function ProductCard({
+  id,
   name,
   slug,
   price,
@@ -22,6 +25,7 @@ export default function ProductCard({
   isBestseller,
   isFeatured,
   onAddToCart,
+  showWishlist = true,
 }: ProductCardProps) {
   return (
     <div className="group card-hover bg-white border border-[oklch(0.88_0.015_75)] overflow-hidden">
@@ -37,6 +41,12 @@ export default function ProductCard({
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <span className="font-serif text-4xl text-[oklch(0.72_0.12_75/0.3)]">🕯</span>
+            </div>
+          )}
+          {/* Wishlist button */}
+          {showWishlist && (
+            <div className="absolute top-3 right-3">
+              <WishlistButton productId={id} size="md" />
             </div>
           )}
           {/* Badges */}

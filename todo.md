@@ -97,3 +97,25 @@
 - [x] Add upload handler to backend (tRPC router)
 - [x] Integrate image upload into product form (add and edit)
 - [x] Show image preview in product form
+
+## Wishlist Feature
+- [x] Create wishlist database schema (wishlist_items table)
+- [x] Add wishlist query helpers to db.ts
+- [x] Create wishlist tRPC router (add, remove, list, check if wishlisted)
+- [x] Create WishlistButton component with heart icon
+- [x] Add wishlist button to ProductCard component
+- [x] Add wishlist button to ProductDetail page
+- [x] Create Wishlist page showing all saved items
+- [x] Add Wishlist link to Navbar
+- [x] Add wishlist count badge to Navbar
+- [x] Show toast notifications on add/remove from wishlist
+
+## Stripe Payment Integration
+- [ ] Add Stripe feature via webdev_add_feature
+- [ ] Configure Stripe API keys (publishable and secret)
+- [ ] Create payment intent endpoint in backend
+- [ ] Build StripePaymentForm component with card element
+- [ ] Integrate Stripe into Checkout page
+- [ ] Handle payment success and error states
+- [ ] Update order creation to include Stripe payment ID
+- [ ] Test end-to-end payment flow

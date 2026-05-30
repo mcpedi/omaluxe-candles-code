@@ -114,6 +114,11 @@ export default function Navbar() {
                         <User size={14} /> My Orders
                       </button>
                     </Link>
+                    <Link href="/wishlist">
+                      <button className="w-full flex items-center gap-2 px-4 py-2 font-sans text-xs text-[oklch(0.38_0.04_60)] hover:bg-[oklch(0.94_0.012_80)] transition-colors">
+                        <span>❤️</span> My Wishlist
+                      </button>
+                    </Link>
                     {user?.role === "admin" && (
                       <Link href="/admin">
                         <button className="w-full flex items-center gap-2 px-4 py-2 font-sans text-xs text-[oklch(0.38_0.04_60)] hover:bg-[oklch(0.94_0.012_80)] transition-colors">

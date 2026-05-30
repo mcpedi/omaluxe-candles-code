@@ -129,3 +129,13 @@ export const notificationPreferences = mysqlTable("notification_preferences", {
 });
 
 export type NotificationPreference = typeof notificationPreferences.$inferSelect;
+
+export const wishlistItems = mysqlTable("wishlist_items", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  productId: int("productId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type WishlistItem = typeof wishlistItems.$inferSelect;
+export type InsertWishlistItem = typeof wishlistItems.$inferInsert;
