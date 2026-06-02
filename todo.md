@@ -119,3 +119,19 @@
 - [ ] Handle payment success and error states
 - [ ] Update order creation to include Stripe payment ID
 - [ ] Test end-to-end payment flow
+
+## Advanced Admin Dashboard
+- [x] Create coupons table in database schema
+- [x] Add sales analytics and revenue calculation functions
+- [x] Create tRPC routers for analytics, coupons, customers, and email marketing
+- [x] Build Sales Analytics tab UI with charts and key metrics
+- [x] Build Inventory Management tab UI with stock levels and low stock alerts
+- [x] Build Customer Management tab UI with customer list and details
+- [x] Build Coupon Management tab UI with create/edit/delete coupons
+- [x] Build Product Performance Tracking tab UI with best sellers and trends
+- [x] Build Bulk Email Marketing tab UI for campaigns
+- [x] Build Revenue Reports tab UI with detailed financial data
+- [x] Integrate all tabs into enhanced Admin Dashboard
+- [x] Write Vitest tests for admin dashboard functionality
+- [x] Test all dashboard features end-to-end in browser
+- [x] Save checkpoint with complete admin dashboard

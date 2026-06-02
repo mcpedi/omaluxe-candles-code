@@ -1,17 +1,17 @@
-import { trpc } from "@/lib/trpc";
-import AdminBroadcast from "@/components/AdminBroadcast";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useState } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
-import { Plus, Edit2, Trash2, Package, ShoppingBag, Eye, X, Check } from "lucide-react";
+import { Plus, Edit2, Trash2, Package, ShoppingBag, Eye } from "lucide-react";
 import ImageUploadField from "@/components/ImageUploadField";
+import AdminDashboard from "@/components/AdminDashboard";
+import { trpc } from "@/lib/trpc";
 
-type AdminTab = "products" | "orders" | "notifications";
+type AdminTab = "products" | "orders" | "dashboard";
 
 export default function Admin() {
   const { user, isAuthenticated, loading } = useAuth();
-  const [tab, setTab] = useState<AdminTab>("products");
+  const [tab, setTab] = useState<AdminTab>("dashboard");
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [selectedOrder, setSelectedOrder] = useState<number | null>(null);
@@ -78,17 +78,17 @@ export default function Admin() {
           <h1 className="font-serif text-3xl font-light text-[oklch(0.18_0.015_60)]">Admin Panel</h1>
         </div>
 
-        {/* Stats */}
+        {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { label: "Total Products", value: products?.length ?? 0, icon: <Package size={18} strokeWidth={1.5} /> },
-            { label: "Total Orders", value: orders?.length ?? 0, icon: <ShoppingBag size={18} strokeWidth={1.5} /> },
-            { label: "Pending Orders", value: orders?.filter(o => o.status === "pending").length ?? 0, icon: <Eye size={18} strokeWidth={1.5} /> },
-            { label: "Revenue", value: `KSh ${orders?.reduce((s, o) => s + parseFloat(o.total), 0).toFixed(0) ?? 0}`, icon: <Check size={18} strokeWidth={1.5} /> },
+            { label: "Total Products", value: products?.length ?? 0, icon: "📦" },
+            { label: "Total Orders", value: orders?.length ?? 0, icon: "🛍️" },
+            { label: "Pending Orders", value: orders?.filter(o => o.status === "pending").length ?? 0, icon: "⏳" },
+            { label: "Revenue", value: `KSh ${orders?.reduce((s, o) => s + parseFloat(o.total), 0).toFixed(0) ?? 0}`, icon: "💰" },
           ].map((stat) => (
             <div key={stat.label} className="bg-white border border-[oklch(0.88_0.015_75)] p-5">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[oklch(0.62_0.12_70)]">{stat.icon}</span>
+                <span className="text-2xl">{stat.icon}</span>
               </div>
               <p className="font-serif text-2xl font-medium text-[oklch(0.18_0.015_60)]">{stat.value}</p>
               <p className="font-sans text-xs text-[oklch(0.52_0.02_60)] mt-1">{stat.label}</p>
@@ -97,21 +97,26 @@ export default function Admin() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-0 border-b border-[oklch(0.88_0.015_75)] mb-6">
-          {(["products", "orders", "notifications"] as AdminTab[]).map((t) => (
+        <div className="flex gap-0 border-b border-[oklch(0.88_0.015_75)] mb-6 overflow-x-auto">
+          {(["dashboard", "products", "orders"] as AdminTab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`font-sans text-xs tracking-[0.15em] uppercase px-6 py-3 border-b-2 -mb-px transition-all ${
+              className={`font-sans text-xs tracking-[0.15em] uppercase px-6 py-3 border-b-2 -mb-px transition-all whitespace-nowrap ${
                 tab === t
                   ? "border-[oklch(0.38_0.07_55)] text-[oklch(0.38_0.07_55)]"
                   : "border-transparent text-[oklch(0.52_0.02_60)] hover:text-[oklch(0.18_0.015_60)]"
               }`}
             >
-              {t === "products" ? "Products" : t === "orders" ? "Orders" : "Notifications"}
+              {t === "dashboard" ? "Dashboard" : t === "products" ? "Products" : "Orders"}
             </button>
           ))}
         </div>
+
+        {/* Dashboard Tab */}
+        {tab === "dashboard" && (
+          <AdminDashboard />
+        )}
 
         {/* Products Tab */}
         {tab === "products" && (
@@ -195,252 +200,263 @@ export default function Admin() {
                 </table>
               </div>
             )}
+
+            {/* Product Form Modal */}
+            {showProductForm && (
+              <ProductFormModal
+                product={editingProduct}
+                onClose={() => setShowProductForm(false)}
+              />
+            )}
           </div>
         )}
 
         {/* Orders Tab */}
         {tab === "orders" && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <p className="font-sans text-sm text-[oklch(0.52_0.02_60)] mb-4">{orders?.length ?? 0} orders</p>
-              {ordersLoading ? (
-                <div className="text-center py-10">
-                  <div className="w-6 h-6 border-2 border-[oklch(0.72_0.12_75)] border-t-transparent rounded-full animate-spin mx-auto" />
-                </div>
-              ) : (
-                <div className="bg-white border border-[oklch(0.88_0.015_75)] overflow-hidden">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-[oklch(0.88_0.015_75)] bg-[oklch(0.96_0.012_80)]">
-                        {["Order", "Customer", "Total", "Status", "Date", ""].map((h) => (
-                          <th key={h} className="text-left px-4 py-3 font-sans text-[10px] tracking-[0.15em] uppercase text-[oklch(0.52_0.02_60)]">{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[oklch(0.88_0.015_75)]">
-                      {orders?.map((order) => (
-                        <tr
-                          key={order.id}
-                          className={`hover:bg-[oklch(0.98_0.005_80)] transition-colors cursor-pointer ${selectedOrder === order.id ? "bg-[oklch(0.96_0.012_80)]" : ""}`}
-                          onClick={() => setSelectedOrder(order.id)}
-                        >
-                          <td className="px-4 py-3 font-sans text-sm font-medium text-[oklch(0.38_0.07_55)">#{order.id}</td>
-                          <td className="px-4 py-3">
-                            <p className="font-sans text-sm text-[oklch(0.18_0.015_60)]">{order.customerName}</p>
-                            <p className="font-sans text-xs text-[oklch(0.52_0.02_60)]">{order.customerEmail}</p>
-                          </td>
-                          <td className="px-4 py-3 font-sans text-sm text-[oklch(0.38_0.07_55)]">KSh {parseFloat(order.total).toFixed(2)}</td>
-                          <td className="px-4 py-3">
-                            <span className={`font-sans text-[10px] px-2 py-1 rounded-full ${statusColors[order.status]}`}>
-                              {order.status}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 font-sans text-xs text-[oklch(0.52_0.02_60)]">
-                            {new Date(order.createdAt).toLocaleDateString()}
-                          </td>
-                          <td className="px-4 py-3">
-                            <Eye size={14} className="text-[oklch(0.62_0.12_70)]" />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {orders?.length === 0 && (
-                    <div className="text-center py-10">
-                      <p className="font-sans text-sm text-[oklch(0.52_0.02_60)]">No orders yet</p>
-                    </div>
-                  )}
-                </div>
-              )}
+          <div>
+            <div className="mb-6">
+              <p className="font-sans text-sm text-[oklch(0.52_0.02_60)]">{orders?.length ?? 0} orders</p>
             </div>
 
-            {/* Order Detail Panel */}
-            {selectedOrder && orderDetail && (
-              <div className="bg-white border border-[oklch(0.88_0.015_75)] p-5 h-fit sticky top-24">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-serif text-lg font-medium text-[oklch(0.18_0.015_60)]">Order #{selectedOrder}</h3>
-                  <button onClick={() => setSelectedOrder(null)} className="text-[oklch(0.52_0.02_60)] hover:text-[oklch(0.18_0.015_60)]">
-                    <X size={16} />
-                  </button>
+            {ordersLoading ? (
+              <div className="text-center py-10">
+                <div className="w-6 h-6 border-2 border-[oklch(0.72_0.12_75)] border-t-transparent rounded-full animate-spin mx-auto" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <div className="bg-white border border-[oklch(0.88_0.015_75)] overflow-hidden">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-[oklch(0.88_0.015_75)] bg-[oklch(0.96_0.012_80)]">
+                          {["Order ID", "Customer", "Total", "Status", "Date"].map((h) => (
+                            <th key={h} className="text-left px-4 py-3 font-sans text-[10px] tracking-[0.15em] uppercase text-[oklch(0.52_0.02_60)]">{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[oklch(0.88_0.015_75)]">
+                        {orders?.map((o) => (
+                          <tr
+                            key={o.id}
+                            onClick={() => setSelectedOrder(o.id)}
+                            className="hover:bg-[oklch(0.98_0.005_80)] cursor-pointer transition-colors"
+                          >
+                            <td className="px-4 py-3 font-sans text-sm font-medium text-[oklch(0.38_0.07_55)]">#{o.id}</td>
+                            <td className="px-4 py-3 font-sans text-sm text-[oklch(0.18_0.015_60)]">{o.customerName}</td>
+                            <td className="px-4 py-3 font-sans text-sm text-[oklch(0.38_0.07_55)]">KSh {parseFloat(o.total).toFixed(2)}</td>
+                            <td className="px-4 py-3">
+                              <span className={`font-sans text-[10px] px-2 py-1 rounded ${statusColors[o.status] || "bg-gray-100 text-gray-700"}`}>
+                                {o.status}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 font-sans text-sm text-[oklch(0.52_0.02_60)]">
+                              {new Date(o.createdAt).toLocaleDateString()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-                {/* Customer */}
-                <div className="mb-4 pb-4 border-b border-[oklch(0.88_0.015_75)]">
-                  <p className="font-sans text-[10px] tracking-[0.15em] uppercase text-[oklch(0.62_0.12_70)] mb-2">Customer</p>
-                  <p className="font-sans text-sm font-medium text-[oklch(0.18_0.015_60)]">{orderDetail.order.customerName}</p>
-                  <p className="font-sans text-xs text-[oklch(0.52_0.02_60)]">{orderDetail.order.customerEmail}</p>
-                  {orderDetail.order.customerPhone && (
-                    <p className="font-sans text-xs text-[oklch(0.52_0.02_60)]">{orderDetail.order.customerPhone}</p>
-                  )}
-                  <p className="font-sans text-xs text-[oklch(0.52_0.02_60)] mt-1">
-                    {orderDetail.order.shippingAddress}{orderDetail.order.city ? `, ${orderDetail.order.city}` : ""}
-                    {orderDetail.order.country ? `, ${orderDetail.order.country}` : ""}
-                  </p>
-                </div>
-                {/* Items */}
-                <div className="mb-4 pb-4 border-b border-[oklch(0.88_0.015_75)]">
-                  <p className="font-sans text-[10px] tracking-[0.15em] uppercase text-[oklch(0.62_0.12_70)] mb-2">Items</p>
-                  <div className="space-y-2">
-                    {orderDetail.items.map((item) => (
-                      <div key={item.id} className="flex justify-between font-sans text-xs">
-                        <span className="text-[oklch(0.38_0.04_60)]">{item.productName} ×{item.quantity}</span>
-                        <span className="text-[oklch(0.38_0.07_55)]">KSh {parseFloat(item.subtotal).toFixed(2)}</span>
+
+                {/* Order Detail Sidebar */}
+                {selectedOrder && orderDetail && (
+                  <div className="bg-white border border-[oklch(0.88_0.015_75)] p-6 h-fit sticky top-24">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-serif text-lg text-[oklch(0.18_0.015_60)]">Order #{selectedOrder}</h3>
+                      <button
+                        onClick={() => setSelectedOrder(null)}
+                        className="text-[oklch(0.52_0.02_60)] hover:text-[oklch(0.18_0.015_60)]"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <p className="font-sans text-xs text-[oklch(0.52_0.02_60)] mb-1">Customer</p>
+                        <p className="font-sans text-sm text-[oklch(0.18_0.015_60)]">{orderDetail.order.customerName}</p>
+                        <p className="font-sans text-xs text-[oklch(0.52_0.02_60)]">{orderDetail.order.customerEmail}</p>
                       </div>
-                    ))}
+
+                      <div>
+                        <p className="font-sans text-xs text-[oklch(0.52_0.02_60)] mb-1">Items</p>
+                        <div className="space-y-2">
+                          {orderDetail.items?.map((item: any) => (
+                            <div key={item.id} className="flex justify-between text-sm">
+                              <span className="text-[oklch(0.18_0.015_60)]">{item.productName} x{item.quantity}</span>
+                              <span className="text-[oklch(0.38_0.07_55)] font-medium">KSh {parseFloat(item.price).toFixed(2)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="border-t border-[oklch(0.88_0.015_75)] pt-4">
+                        <div className="flex justify-between mb-3">
+                          <span className="font-sans text-sm text-[oklch(0.52_0.02_60)]">Total</span>
+                          <span className="font-serif text-lg font-medium text-[oklch(0.38_0.07_55)]">KSh {parseFloat(orderDetail.order.total).toFixed(2)}</span>
+                        </div>
+
+                        <div>
+                          <label className="block font-sans text-xs text-[oklch(0.52_0.02_60)] mb-2">Update Status</label>
+                          <select
+                            value={orderDetail.order.status}
+                            onChange={(e) => updateStatus.mutate({ id: selectedOrder, status: e.target.value as any })}
+                            className="w-full px-3 py-2 border border-[oklch(0.88_0.015_75)] rounded font-sans text-sm"
+                          >
+                            {["pending", "processing", "shipped", "delivered", "cancelled"].map((s) => (
+                              <option key={s} value={s}>{s}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="mt-2 pt-2 border-t border-[oklch(0.88_0.015_75)] flex justify-between font-sans text-sm font-medium">
-                    <span>Total</span>
-                    <span className="text-[oklch(0.38_0.07_55)]">KSh {parseFloat(orderDetail.order.total).toFixed(2)}</span>
-                  </div>
-                </div>
-                {/* Status update */}
-                <div>
-                  <p className="font-sans text-[10px] tracking-[0.15em] uppercase text-[oklch(0.62_0.12_70)] mb-2">Update Status</p>
-                  <select
-                    value={orderDetail.order.status}
-                    onChange={(e) => updateStatus.mutate({ id: selectedOrder, status: e.target.value as any })}
-                    className="w-full border border-[oklch(0.88_0.015_75)] px-3 py-2 font-sans text-sm text-[oklch(0.18_0.015_60)] focus:outline-none focus:border-[oklch(0.62_0.12_70)] bg-white"
-                  >
-                    {["pending", "processing", "shipped", "delivered", "cancelled"].map((s) => (
-                      <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
-                    ))}
-                  </select>
-                </div>
+                )}
               </div>
             )}
           </div>
         )}
-
-        {/* Notifications Tab */}
-        {tab === "notifications" && (
-          <div className="max-w-2xl">
-            <div className="mb-6">
-              <h2 className="font-serif text-xl font-medium text-[oklch(0.18_0.015_60)] mb-1">Broadcast Notifications</h2>
-              <p className="font-sans text-xs text-[oklch(0.52_0.02_60)]">
-                Send in-app notifications to all registered customers instantly.
-              </p>
-            </div>
-            <AdminBroadcast />
-          </div>
-        )}
       </div>
-
-      {showProductForm && (
-        <ProductFormModal
-          product={editingProduct}
-          onClose={() => {
-            setShowProductForm(false);
-            setEditingProduct(null);
-          }}
-          onSuccess={() => {
-            setShowProductForm(false);
-            setEditingProduct(null);
-          }}
-        />
-      )}
     </div>
   );
 }
 
-function ProductFormModal({ product, onClose, onSuccess }: { product: any; onClose: () => void; onSuccess: () => void }) {
-  const [form, setForm] = useState({
-    name: product?.name ?? "",
-    slug: product?.slug ?? "",
-    description: product?.description ?? "",
-    scentNotes: product?.scentNotes ?? "",
-    burnTime: product?.burnTime ?? "",
-    imageUrl: product?.imageUrl ?? "",
-    price: product?.price ?? "",
-    mood: product?.mood ?? "",
-    isFeatured: product?.isFeatured ?? false,
-    isBestseller: product?.isBestseller ?? false,
-    stock: product?.stock ?? 100,
+// Product Form Modal Component
+function ProductFormModal({ product, onClose }: { product: any; onClose: () => void }) {
+  const [formData, setFormData] = useState({
+    name: product?.name || "",
+    description: product?.description || "",
+    price: product?.price || "",
+    stock: product?.stock || 100,
+    isFeatured: product?.isFeatured || false,
+    isBestseller: product?.isBestseller || false,
+    imageUrl: product?.imageUrl || "",
   });
 
-  const createProduct = trpc.products.create.useMutation({ onSuccess });
-  const updateProduct = trpc.products.update.useMutation({ onSuccess });
+  const utils = trpc.useUtils();
+  const createProduct = trpc.products.create.useMutation({
+    onSuccess: () => {
+      utils.products.list.invalidate();
+      toast.success("Product created");
+      onClose();
+    },
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (product) {
-      updateProduct.mutate({ id: product.id, ...form, stock: Number(form.stock) });
+  const updateProduct = trpc.products.update.useMutation({
+    onSuccess: () => {
+      utils.products.list.invalidate();
+      toast.success("Product updated");
+      onClose();
+    },
+  });
+
+  const handleSubmit = () => {
+    const slug = formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+    if (product?.id) {
+      updateProduct.mutate({ id: product.id, ...formData, slug });
     } else {
-      createProduct.mutate({ ...form, stock: Number(form.stock) });
+      createProduct.mutate({ ...formData, slug });
     }
   };
 
-  const inputClass = "w-full bg-white border border-[oklch(0.88_0.015_75)] px-3 py-2.5 font-sans text-sm text-[oklch(0.18_0.015_60)] focus:outline-none focus:border-[oklch(0.62_0.12_70)] transition-colors";
-  const labelClass = "font-sans text-[10px] tracking-[0.15em] uppercase text-[oklch(0.52_0.02_60)] block mb-1.5";
-
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center p-5 border-b border-[oklch(0.88_0.015_75)]">
-          <h2 className="font-serif text-xl font-medium text-[oklch(0.18_0.015_60)]">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-[oklch(0.88_0.015_75)] p-6 flex justify-between items-center">
+          <h2 className="font-serif text-2xl text-[oklch(0.18_0.015_60)]">
             {product ? "Edit Product" : "Add Product"}
           </h2>
-          <button onClick={onClose} className="text-[oklch(0.52_0.02_60)] hover:text-[oklch(0.18_0.015_60)]">
-            <X size={18} />
-          </button>
+          <button onClick={onClose} className="text-2xl text-[oklch(0.52_0.02_60)]">✕</button>
         </div>
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block font-sans text-sm mb-2 text-[oklch(0.18_0.015_60)]">Product Name</label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-3 py-2 border border-[oklch(0.88_0.015_75)] rounded font-sans"
+            />
+          </div>
+
+          <div>
+            <label className="block font-sans text-sm mb-2 text-[oklch(0.18_0.015_60)]">Description</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={4}
+              className="w-full px-3 py-2 border border-[oklch(0.88_0.015_75)] rounded font-sans"
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Name *</label>
-              <input type="text" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputClass} />
+              <label className="block font-sans text-sm mb-2 text-[oklch(0.18_0.015_60)]">Price (KSh)</label>
+              <input
+                type="number"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                className="w-full px-3 py-2 border border-[oklch(0.88_0.015_75)] rounded font-sans"
+              />
             </div>
             <div>
-              <label className={labelClass}>Slug *</label>
-              <input type="text" required value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} className={inputClass} />
+              <label className="block font-sans text-sm mb-2 text-[oklch(0.18_0.015_60)]">Stock</label>
+              <input
+                type="number"
+                value={formData.stock}
+                onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) })}
+                className="w-full px-3 py-2 border border-[oklch(0.88_0.015_75)] rounded font-sans"
+              />
             </div>
           </div>
+
           <div>
-            <label className={labelClass}>Description</label>
-            <textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={`${inputClass} resize-none`} />
+            <label className="block font-sans text-sm mb-2 text-[oklch(0.18_0.015_60)]">Product Image</label>
+            <ImageUploadField
+              value={formData.imageUrl}
+              onChange={(url: string) => setFormData({ ...formData, imageUrl: url })}
+            />
           </div>
-          <div>
-            <label className={labelClass}>Scent Notes</label>
-            <input type="text" value={form.scentNotes} onChange={(e) => setForm({ ...form, scentNotes: e.target.value })} className={inputClass} />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelClass}>Price (KSh) *</label>
-              <input type="text" required value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className={inputClass} />
-            </div>
-            <div>
-              <label className={labelClass}>Burn Time</label>
-              <input type="text" value={form.burnTime} onChange={(e) => setForm({ ...form, burnTime: e.target.value })} className={inputClass} />
-            </div>
-          </div>
-          <div>
-            <ImageUploadField value={form.imageUrl} onChange={(url) => setForm({ ...form, imageUrl: url })} />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelClass}>Mood</label>
-              <input type="text" value={form.mood} onChange={(e) => setForm({ ...form, mood: e.target.value })} className={inputClass} placeholder="e.g. romantic" />
-            </div>
-            <div>
-              <label className={labelClass}>Stock</label>
-              <input type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: parseInt(e.target.value) })} className={inputClass} />
-            </div>
-          </div>
-          <div className="flex gap-6">
+
+          <div className="flex gap-4">
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} className="w-4 h-4" />
-              <span className="font-sans text-sm text-[oklch(0.38_0.04_60)]">Featured</span>
+              <input
+                type="checkbox"
+                checked={formData.isFeatured}
+                onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
+                className="w-4 h-4"
+              />
+              <span className="font-sans text-sm text-[oklch(0.18_0.015_60)]">Featured</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={form.isBestseller} onChange={(e) => setForm({ ...form, isBestseller: e.target.checked })} className="w-4 h-4" />
-              <span className="font-sans text-sm text-[oklch(0.38_0.04_60)]">Bestseller</span>
+              <input
+                type="checkbox"
+                checked={formData.isBestseller}
+                onChange={(e) => setFormData({ ...formData, isBestseller: e.target.checked })}
+                className="w-4 h-4"
+              />
+              <span className="font-sans text-sm text-[oklch(0.18_0.015_60)]">Bestseller</span>
             </label>
           </div>
-          <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="btn-luxury-outline flex-1">Cancel</button>
-            <button type="submit" disabled={createProduct.isPending || updateProduct.isPending} className="btn-luxury flex-1">
-              {createProduct.isPending || updateProduct.isPending ? "Saving..." : product ? "Update" : "Create"}
+
+          <div className="flex gap-4 pt-6 border-t border-[oklch(0.88_0.015_75)]">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border border-[oklch(0.88_0.015_75)] rounded font-sans text-sm text-[oklch(0.52_0.02_60)] hover:bg-[oklch(0.96_0.012_80)]"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={createProduct.isPending || updateProduct.isPending}
+              className="flex-1 btn-luxury"
+            >
+              {createProduct.isPending || updateProduct.isPending ? "Saving..." : "Save Product"}
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

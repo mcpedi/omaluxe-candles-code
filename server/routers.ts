@@ -40,7 +40,25 @@ import {
   getWishlistItems,
   isProductWishlisted,
   getWishlistCount,
+  getSalesAnalytics,
+  getRevenueByDate,
+  getTopProducts,
+  getInventoryStatus,
+  getCustomerMetrics,
+  createCoupon,
+  getCoupons,
+  getCouponByCode,
+  updateCoupon,
+  deleteCoupon,
+  incrementCouponUses,
+  getAllCustomers,
+  getCustomerOrderHistory,
+  getEmailListForMarketing,
 } from "./db";
+import { inArray } from "drizzle-orm";
+import { notifications, users } from "../drizzle/schema";
+import type { InsertNotification } from "../drizzle/schema";
+import { getDb } from "./db";
 
 // Admin guard middleware
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -346,6 +364,150 @@ export const appRouter = router({
         }
         return { success: true };
       }),
+    // ── Analytics ────────────────────────────────────────────────────────────────
+    analytics: router({
+      sales: adminProcedure.query(async () => {
+        return await getSalesAnalytics();
+      }),
+      revenueByDate: adminProcedure
+        .input(z.object({ days: z.number().default(30) }))
+        .query(async ({ input }) => {
+          return await getRevenueByDate(input.days);
+        }),
+      topProducts: adminProcedure
+        .input(z.object({ limit: z.number().default(10) }))
+        .query(async ({ input }) => {
+          return await getTopProducts(input.limit);
+        }),
+      inventory: adminProcedure.query(async () => {
+          return await getInventoryStatus();
+        }),
+      customerMetrics: adminProcedure.query(async () => {
+          return await getCustomerMetrics();
+        }),
+    }),
+    // ── Coupons ──────────────────────────────────────────────────────────────────
+    coupons: router({
+      list: adminProcedure
+        .input(z.object({ active: z.boolean().default(true) }))
+        .query(async ({ input }) => {
+          return await getCoupons(input.active);
+        }),
+      create: adminProcedure
+        .input(
+          z.object({
+            code: z.string(),
+            description: z.string().optional(),
+            discountType: z.enum(["percentage", "fixed"]),
+            discountValue: z.number(),
+            maxUses: z.number().optional(),
+            minOrderValue: z.number().optional(),
+            expiresAt: z.date().optional(),
+          })
+        )
+        .mutation(async ({ input }) => {
+          await createCoupon({
+            code: input.code,
+            description: input.description,
+            discountType: input.discountType,
+            discountValue: input.discountValue.toString(),
+            maxUses: input.maxUses,
+            minOrderValue: input.minOrderValue?.toString(),
+            expiresAt: input.expiresAt,
+          });
+          return { success: true };
+        }),
+      update: adminProcedure
+        .input(
+          z.object({
+            id: z.number(),
+            updates: z.object({
+              description: z.string().optional(),
+              discountValue: z.number().optional(),
+              maxUses: z.number().optional(),
+              isActive: z.boolean().optional(),
+            }),
+          })
+        )
+        .mutation(async ({ input }) => {
+          await updateCoupon(input.id, {
+            description: input.updates.description,
+            discountValue: input.updates.discountValue?.toString(),
+            maxUses: input.updates.maxUses,
+            isActive: input.updates.isActive,
+          });
+          return { success: true };
+        }),
+      delete: adminProcedure
+        .input(z.object({ id: z.number() }))
+        .mutation(async ({ input }) => {
+          await deleteCoupon(input.id);
+          return { success: true };
+        }),
+    }),
+    // ── Customers ────────────────────────────────────────────────────────────────
+    customers: router({
+      list: adminProcedure.query(async () => {
+          return await getAllCustomers();
+        }),
+      orderHistory: adminProcedure
+        .input(z.object({ userId: z.number() }))
+        .query(async ({ input }) => {
+          return await getCustomerOrderHistory(input.userId);
+        }),
+    }),
+    // ── Email Marketing ──────────────────────────────────────────────────────────
+    email: router({
+      getList: adminProcedure.query(async () => {
+          return await getEmailListForMarketing();
+        }),
+      sendBroadcast: adminProcedure
+        .input(
+          z.object({
+            subject: z.string(),
+            message: z.string(),
+            recipientEmails: z.array(z.string()).optional(),
+          })
+        )
+        .mutation(async ({ input }) => {
+          try {
+            const db = await getDb();
+            if (!db) throw new Error('Database unavailable');
+            
+            let targetUsers: any[] = [];
+            if (input.recipientEmails && input.recipientEmails.length > 0) {
+              targetUsers = await db
+                .select()
+                .from(users)
+                .where(inArray(users.email, input.recipientEmails));
+            } else {
+              targetUsers = await db.select().from(users);
+            }
+            
+            const notificationsToCreate: InsertNotification[] = targetUsers.map((user) => ({
+              userId: user.id,
+              type: 'promotion' as const,
+              title: input.subject,
+              message: input.message,
+              isRead: false,
+              createdAt: new Date(),
+            }));
+            
+            if (notificationsToCreate.length > 0) {
+              await db.insert(notifications).values(notificationsToCreate);
+            }
+            
+            console.log(`[Email Broadcast] Sent to ${targetUsers.length} users`);
+            return { success: true, sent: targetUsers.length };
+          } catch (error) {
+            console.error('[Email Broadcast Error]', error);
+            throw new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'Failed to send broadcast',
+            });
+          }
+        }),
+    }),
   }),
 
   // ── Notifications ────────────────────────────────────────────────────────────
@@ -491,5 +653,7 @@ Always end with an invitation to explore the full collection or ask more questio
       return { count };
     }),
   }),
+  // ── Admin Analytics & Reports ───────────────────────────────────────────────
 });
+
 export type AppRouter = typeof appRouter;

@@ -1,6 +1,6 @@
-import { and, desc, eq } from "drizzle-orm";
+import { eq, and, desc, like, gte, lte, sum, count, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, cartItems, categories, orderItems, orders, products, users, notifications, notificationPreferences, InsertNotification, wishlistItems } from "../drizzle/schema";
+import { InsertUser, cartItems, categories, orderItems, orders, products, users, notifications, notificationPreferences, InsertNotification, wishlistItems, coupons, Coupon, InsertCoupon } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -501,3 +501,211 @@ export async function getWishlistCount(userId: number) {
     .where(eq(wishlistItems.userId, userId));
   return result.length;
 }
+
+// ===== ANALYTICS & REPORTING =====
+
+export async function getSalesAnalytics() {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db
+    .select({
+      totalRevenue: sum(orders.total),
+      totalOrders: count(orders.id),
+      averageOrderValue: sql`AVG(${orders.total})`,
+    })
+    .from(orders)
+    .where(eq(orders.status, 'delivered'));
+  
+  return result[0] || { totalRevenue: 0, totalOrders: 0, averageOrderValue: 0 };
+}
+
+export async function getRevenueByDate(days: number = 30): Promise<Array<{ date: any; revenue: any; orders: number }>> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+  
+  const dateExpr = sql`DATE(${orders.createdAt})`;
+  const result = await db
+    .select({
+      date: dateExpr,
+      revenue: sum(orders.total),
+      orders: count(orders.id),
+    })
+    .from(orders)
+    .where(and(eq(orders.status, 'delivered'), gte(orders.createdAt, startDate)))
+    .groupBy(dateExpr)
+    .orderBy(desc(dateExpr));
+  
+  return result;
+}
+
+export async function getTopProducts(limit: number = 10) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db
+    .select({
+      productId: orderItems.productId,
+      productName: products.name,
+      totalSold: sum(orderItems.quantity),
+      totalRevenue: sum(orderItems.subtotal),
+    })
+    .from(orderItems)
+    .leftJoin(products, eq(orderItems.productId, products.id))
+    .groupBy(orderItems.productId)
+    .orderBy(desc(sum(orderItems.quantity)))
+    .limit(limit);
+  
+  return result;
+}
+
+export async function getInventoryStatus() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db
+    .select({
+      id: products.id,
+      name: products.name,
+      price: products.price,
+      stock: products.stock,
+      isFeatured: products.isFeatured,
+      isBestseller: products.isBestseller,
+    })
+    .from(products)
+    .orderBy(asc(products.stock));
+  
+  return result;
+}
+
+export async function getCustomerMetrics() {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const totalCustomers = await db.select({ count: count() }).from(users).where(eq(users.role, 'user'));
+  const totalOrders = await db.select({ count: count() }).from(orders);
+  const totalRevenue = await db.select({ sum: sum(orders.total) }).from(orders).where(eq(orders.status, 'delivered'));
+  
+  return {
+    totalCustomers: totalCustomers[0]?.count || 0,
+    totalOrders: totalOrders[0]?.count || 0,
+    totalRevenue: totalRevenue[0]?.sum || 0,
+  };
+}
+
+// ===== COUPON MANAGEMENT =====
+
+export async function createCoupon(coupon: InsertCoupon) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.insert(coupons).values(coupon);
+}
+
+export async function getCoupons(active: boolean = true) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db
+    .select()
+    .from(coupons)
+    .where(eq(coupons.isActive, active))
+    .orderBy(desc(coupons.createdAt));
+  
+  return result;
+}
+
+export async function getCouponByCode(code: string) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db
+    .select()
+    .from(coupons)
+    .where(and(eq(coupons.code, code), eq(coupons.isActive, true)))
+    .limit(1);
+  
+  return result[0] || null;
+}
+
+export async function updateCoupon(id: number, updates: Partial<Coupon>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(coupons).set(updates).where(eq(coupons.id, id));
+}
+
+export async function deleteCoupon(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.delete(coupons).where(eq(coupons.id, id));
+}
+
+export async function incrementCouponUses(couponId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db
+    .update(coupons)
+    .set({ currentUses: sql`${coupons.currentUses} + 1` })
+    .where(eq(coupons.id, couponId));
+}
+
+// ===== CUSTOMER MANAGEMENT =====
+
+export async function getAllCustomers() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      createdAt: users.createdAt,
+      lastSignedIn: users.lastSignedIn,
+    })
+    .from(users)
+    .where(eq(users.role, sql`'user'`))
+    .orderBy(desc(users.createdAt));
+  
+  return result;
+}
+
+export async function getCustomerOrderHistory(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db
+    .select()
+    .from(orders)
+    .where(eq(orders.userId, userId))
+    .orderBy(desc(orders.createdAt));
+  
+  return result;
+}
+
+// ===== EMAIL MARKETING =====
+
+export async function getEmailListForMarketing() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db
+    .select({
+      id: users.id,
+      email: users.email,
+      name: users.name,
+    })
+    .from(users)
+    .where(and(eq(users.role, "user"), like(users.email, "%@%")))
+    .orderBy(desc(users.createdAt));
+  
+  return result;
+}
+
+import { asc } from "drizzle-orm";

@@ -29,6 +29,13 @@
       "when": 1780095899879,
       "tag": "0003_warm_aaron_stack",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1780263249897,
+      "tag": "0004_typical_blindfold",
+      "breakpoints": true
     }
   ]
 }

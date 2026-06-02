@@ -139,3 +139,21 @@ export const wishlistItems = mysqlTable("wishlist_items", {
 
 export type WishlistItem = typeof wishlistItems.$inferSelect;
 export type InsertWishlistItem = typeof wishlistItems.$inferInsert;
+
+export const coupons = mysqlTable("coupons", {
+  id: int("id").autoincrement().primaryKey(),
+  code: varchar("code", { length: 64 }).notNull().unique(),
+  description: text("description"),
+  discountType: mysqlEnum("discountType", ["percentage", "fixed"]).notNull(),
+  discountValue: decimal("discountValue", { precision: 10, scale: 2 }).notNull(),
+  maxUses: int("maxUses"),
+  currentUses: int("currentUses").default(0).notNull(),
+  minOrderValue: decimal("minOrderValue", { precision: 10, scale: 2 }),
+  expiresAt: timestamp("expiresAt"),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Coupon = typeof coupons.$inferSelect;
+export type InsertCoupon = typeof coupons.$inferInsert;
