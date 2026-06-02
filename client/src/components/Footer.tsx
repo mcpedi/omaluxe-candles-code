@@ -81,13 +81,20 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-[oklch(0.72_0.12_75/0.15)] mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="font-sans text-xs text-[oklch(0.52_0.01_70)]">
-            © {new Date().getFullYear()} OmaLuxe Candles and Scents. All rights reserved.
-          </p>
-          <p className="font-sans text-xs text-[oklch(0.52_0.01_70)]">
-            Crafted with care · Premium quality · Luxury experience
-          </p>
+        <div className="border-t border-[oklch(0.72_0.12_75/0.15)] mt-12 pt-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
+            <p className="font-sans text-xs text-[oklch(0.52_0.01_70)]">
+              © {new Date().getFullYear()} OmaLuxe Candles and Scents. All rights reserved.
+            </p>
+            <p className="font-sans text-xs text-[oklch(0.52_0.01_70)]">
+              Crafted with care · Premium quality · Luxury experience
+            </p>
+          </div>
+          <div className="text-center">
+            <p className="font-sans text-xs text-[oklch(0.52_0.01_70)]">
+              Designed & built by <span className="font-semibold text-[oklch(0.72_0.12_75)]">Jacks Web Solutions</span>
+            </p>
+          </div>
         </div>
       </div>
     </footer>

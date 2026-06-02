@@ -147,3 +147,4 @@
 - [ ] Add review count and average rating to ProductCard component
 - [x] Write Vitest tests for review functionality
 - [x] Test reviews feature end-to-end in browser
+
