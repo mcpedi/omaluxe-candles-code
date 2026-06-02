@@ -135,3 +135,15 @@
 - [x] Write Vitest tests for admin dashboard functionality
 - [x] Test all dashboard features end-to-end in browser
 - [x] Save checkpoint with complete admin dashboard
+
+## Product Reviews & Ratings
+- [x] Create reviews table in database schema (productId, userId, rating, title, comment, createdAt)
+- [x] Run migration and apply SQL for reviews table
+- [x] Add review query helpers to db.ts (create, list by product, get average rating, delete)
+- [x] Create tRPC routers for reviews (create, list, delete, get average rating)
+- [x] Create ProductReviews UI component with review form and list
+- [x] Add star rating display component
+- [x] Integrate reviews into ProductDetail page
+- [ ] Add review count and average rating to ProductCard component
+- [x] Write Vitest tests for review functionality
+- [x] Test reviews feature end-to-end in browser

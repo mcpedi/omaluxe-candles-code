@@ -48,6 +48,13 @@ import {
   createCoupon,
   getCoupons,
   getCouponByCode,
+  createReview,
+  getReviewsByProduct,
+  getAverageRating,
+  deleteReview,
+  updateReviewHelpful,
+  getUserReview,
+  getReviewById,
   updateCoupon,
   deleteCoupon,
   incrementCouponUses,
@@ -652,6 +659,63 @@ Always end with an invitation to explore the full collection or ask more questio
       const count = await getWishlistCount(ctx.user.id);
       return { count };
     }),
+  }),
+  // ── Reviews ─────────────────────────────────────────────────────────────────────
+  reviews: router({
+    create: protectedProcedure
+      .input(
+        z.object({
+          productId: z.number(),
+          rating: z.number().min(1).max(5),
+          title: z.string().optional(),
+          comment: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const existing = await getUserReview(input.productId, ctx.user.id);
+        if (existing) {
+          throw new Error("You have already reviewed this product");
+        }
+        await createReview({
+          productId: input.productId,
+          userId: ctx.user.id,
+          rating: input.rating,
+          title: input.title,
+          comment: input.comment,
+        });
+        return { success: true };
+      }),
+    list: publicProcedure
+      .input(z.object({ productId: z.number() }))
+      .query(async ({ input }) => {
+        return await getReviewsByProduct(input.productId);
+      }),
+    averageRating: publicProcedure
+      .input(z.object({ productId: z.number() }))
+      .query(async ({ input }) => {
+        return await getAverageRating(input.productId);
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        const review = await getReviewById(input.id);
+        if (!review) {
+          throw new Error("Review not found");
+        }
+        if (review.userId !== ctx.user.id) {
+          throw new Error("Unauthorized");
+        }
+        await deleteReview(input.id);
+        return { success: true };
+      }),
+    markHelpful: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const review = await getReviewById(input.id);
+        if (!review) throw new Error("Review not found");
+        await updateReviewHelpful(input.id, (review.helpful || 0) + 1);
+        return { success: true };
+      }),
   }),
   // ── Admin Analytics & Reports ───────────────────────────────────────────────
 });

@@ -157,3 +157,18 @@ export const coupons = mysqlTable("coupons", {
 
 export type Coupon = typeof coupons.$inferSelect;
 export type InsertCoupon = typeof coupons.$inferInsert;
+
+export const reviews = mysqlTable("reviews", {
+  id: int("id").autoincrement().primaryKey(),
+  productId: int("productId").notNull(),
+  userId: int("userId").notNull(),
+  rating: int("rating").notNull(), // 1-5 stars
+  title: varchar("title", { length: 256 }),
+  comment: text("comment"),
+  helpful: int("helpful").default(0).notNull(), // count of helpful votes
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Review = typeof reviews.$inferSelect;
+export type InsertReview = typeof reviews.$inferInsert;

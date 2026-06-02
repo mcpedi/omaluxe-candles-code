@@ -6,6 +6,7 @@ import { useParams, Link } from "wouter";
 import { Minus, Plus, ShoppingBag, Clock, Leaf, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 import WishlistButton from "@/components/WishlistButton";
+import { ProductReviews } from "@/components/ProductReviews";
 
 export default function ProductDetail() {
   const params = useParams<{ slug: string }>();
@@ -208,6 +209,11 @@ export default function ProductDetail() {
             </div>
           </div>
         </div>
+      </div>
+      
+      {/* Product Reviews */}
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <ProductReviews productId={product.id} />
       </div>
     </div>
   );

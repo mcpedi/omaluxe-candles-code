@@ -1,6 +1,6 @@
 import { eq, and, desc, like, gte, lte, sum, count, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, cartItems, categories, orderItems, orders, products, users, notifications, notificationPreferences, InsertNotification, wishlistItems, coupons, Coupon, InsertCoupon } from "../drizzle/schema";
+import { InsertUser, cartItems, categories, orderItems, orders, products, users, notifications, notificationPreferences, InsertNotification, wishlistItems, coupons, Coupon, InsertCoupon, reviews, Review, InsertReview } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -707,3 +707,82 @@ export async function getEmailListForMarketing() {
 }
 
 import { asc } from "drizzle-orm";
+
+// ── Reviews ──────────────────────────────────────────────────────────────────
+export async function createReview(review: InsertReview) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.insert(reviews).values(review);
+}
+
+export async function getReviewsByProduct(productId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db
+    .select()
+    .from(reviews)
+    .where(eq(reviews.productId, productId))
+    .orderBy(desc(reviews.createdAt));
+  
+  return result;
+}
+
+export async function getAverageRating(productId: number) {
+  const db = await getDb();
+  if (!db) return { avgRating: 0, totalReviews: 0 };
+  
+  const result = await db
+    .select({
+      avgRating: sql`AVG(${reviews.rating})`,
+      totalReviews: count(reviews.id),
+    })
+    .from(reviews)
+    .where(eq(reviews.productId, productId));
+  
+  return {
+    avgRating: result[0]?.avgRating ? parseFloat(result[0].avgRating as any) : 0,
+    totalReviews: result[0]?.totalReviews || 0,
+  };
+}
+
+export async function deleteReview(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.delete(reviews).where(eq(reviews.id, id));
+}
+
+export async function updateReviewHelpful(id: number, helpful: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(reviews).set({ helpful }).where(eq(reviews.id, id));
+}
+
+export async function getUserReview(productId: number, userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db
+    .select()
+    .from(reviews)
+    .where(and(eq(reviews.productId, productId), eq(reviews.userId, userId)))
+    .limit(1);
+  
+  return result[0] || null;
+}
+
+export async function getReviewById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db
+    .select()
+    .from(reviews)
+    .where(eq(reviews.id, id))
+    .limit(1);
+  
+  return result[0] || null;
+}
