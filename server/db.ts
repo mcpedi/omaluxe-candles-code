@@ -526,20 +526,18 @@ export async function getRevenueByDate(days: number = 30): Promise<Array<{ date:
   
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
+  const startDateStr = startDate.toISOString().split('T')[0];
   
-  const dateExpr = sql`DATE(${orders.createdAt})`;
-  const result = await db
-    .select({
-      date: dateExpr,
-      revenue: sum(orders.total),
-      orders: count(orders.id),
-    })
-    .from(orders)
-    .where(and(eq(orders.status, 'delivered'), gte(orders.createdAt, startDate)))
-    .groupBy(dateExpr)
-    .orderBy(desc(dateExpr));
+  // Use raw SQL to avoid MySQL GROUP BY strict mode issues
+  const result = await db.execute(
+    sql`SELECT DATE(createdAt) as date, SUM(total) as revenue, COUNT(id) as orders 
+        FROM orders 
+        WHERE status = 'delivered' AND createdAt >= ${startDateStr}
+        GROUP BY DATE(createdAt)
+        ORDER BY DATE(createdAt) DESC`
+  );
   
-  return result;
+  return ((result as any[])?.[0] as any[]) || [];
 }
 
 export async function getTopProducts(limit: number = 10) {
