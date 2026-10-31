@@ -1,6 +1,8 @@
 import { Link } from "wouter";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, Star } from "lucide-react";
 import WishlistButton from "./WishlistButton";
+import { trpc } from "@/lib/trpc";
+import { getReviewSummaryLabel } from "@/lib/reviewSummary";
 
 interface ProductCardProps {
   id: number;
@@ -27,6 +29,13 @@ export default function ProductCard({
   onAddToCart,
   showWishlist = true,
 }: ProductCardProps) {
+  const { data: ratingData, isLoading: ratingLoading, isError: ratingError } =
+    trpc.reviews.averageRating.useQuery({ productId: id });
+  const reviewSummaryLabel = getReviewSummaryLabel(ratingData, {
+    isLoading: ratingLoading,
+    isError: ratingError,
+  });
+
   return (
     <div className="group card-hover bg-white border border-[oklch(0.88_0.015_75)] overflow-hidden">
       {/* Image */}
@@ -92,6 +101,29 @@ export default function ProductCard({
             {scentNotes.split("|")[0]?.trim()}
           </p>
         )}
+        <div
+          className="flex items-center gap-1.5 mb-2 min-h-4"
+          aria-label={reviewSummaryLabel}
+          aria-busy={ratingLoading}
+        >
+          {ratingData?.totalReviews ? (
+            <>
+              <Star size={12} fill="currentColor" className="text-[oklch(0.72_0.12_75)]" />
+              <span className="font-sans text-[11px] text-[oklch(0.38_0.07_55)]">
+                {ratingData.avgRating.toFixed(1)}
+              </span>
+              <span className="font-sans text-[11px] text-[oklch(0.52_0.02_60)]">
+                ({ratingData.totalReviews})
+              </span>
+            </>
+          ) : ratingLoading ? (
+            <span className="font-sans text-[10px] text-[oklch(0.58_0.02_60)]">Loading reviews…</span>
+          ) : ratingError ? (
+            <span className="font-sans text-[10px] text-[oklch(0.58_0.02_60)]">Reviews unavailable</span>
+          ) : (
+            <span className="font-sans text-[10px] text-[oklch(0.58_0.02_60)]">No reviews yet</span>
+          )}
+        </div>
         <div className="flex items-center justify-between mt-2">
           <span className="font-sans text-sm font-medium text-[oklch(0.38_0.07_55)]">
             From KSh {parseFloat(price).toFixed(2)}

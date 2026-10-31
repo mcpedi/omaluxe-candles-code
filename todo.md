@@ -144,7 +144,6 @@
 - [x] Create ProductReviews UI component with review form and list
 - [x] Add star rating display component
 - [x] Integrate reviews into ProductDetail page
-- [ ] Add review count and average rating to ProductCard component
+- [x] Add review count and average rating to ProductCard component
 - [x] Write Vitest tests for review functionality
 - [x] Test reviews feature end-to-end in browser
-
