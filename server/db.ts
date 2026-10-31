@@ -1,16 +1,21 @@
-import { eq, and, desc, like, gte, lte, sum, count, sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/mysql2";
+import { eq, and, desc, like, gte, sum, count, sql, asc } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import { InsertUser, cartItems, categories, orderItems, orders, products, users, notifications, notificationPreferences, InsertNotification, wishlistItems, coupons, Coupon, InsertCoupon, reviews, Review, InsertReview } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
+let _client: ReturnType<typeof postgres> | null = null;
 let _db: ReturnType<typeof drizzle> | null = null;
 
 export async function getDb() {
-  if (!_db && process.env.DATABASE_URL) {
+  const connectionString = process.env.NEON_DATABASE_URL ?? process.env.DATABASE_URL;
+  if (!_db && connectionString) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      _client = postgres(connectionString, { max: 10, prepare: false });
+      _db = drizzle(_client);
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
+      _client = null;
       _db = null;
     }
   }
@@ -47,7 +52,10 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     }
     if (!values.lastSignedIn) values.lastSignedIn = new Date();
     if (Object.keys(updateSet).length === 0) updateSet.lastSignedIn = new Date();
-    await db.insert(users).values(values).onDuplicateKeyUpdate({ set: updateSet });
+    await db.insert(users).values(values).onConflictDoUpdate({
+      target: users.openId,
+      set: updateSet as any,
+    });
   } catch (error) {
     console.error("[Database] Failed to upsert user:", error);
     throw error;
@@ -148,8 +156,8 @@ export async function addCartItem(data: typeof cartItems.$inferInsert) {
       .where(eq(cartItems.id, existing[0].id));
     return existing[0].id;
   }
-  const result = await db.insert(cartItems).values(data);
-  return (result[0] as any).insertId;
+  const result = await db.insert(cartItems).values(data).returning({ id: cartItems.id });
+  return result[0].id;
 }
 
 export async function updateCartItem(id: number, userId: number, quantity: number) {
@@ -177,8 +185,8 @@ export async function createOrder(
 ) {
   const db = await getDb();
   if (!db) throw new Error("DB unavailable");
-  const result = await db.insert(orders).values(orderData);
-  const orderId = (result[0] as any).insertId;
+  const result = await db.insert(orders).values(orderData).returning({ id: orders.id });
+  const orderId = result[0].id;
   const itemsWithOrderId = items.map((item) => ({ ...item, orderId }));
   await db.insert(orderItems).values(itemsWithOrderId);
   return orderId;
@@ -423,7 +431,10 @@ export async function upsertNotificationPreferences(
   await db
     .insert(notificationPreferences)
     .values({ userId, ...prefs })
-    .onDuplicateKeyUpdate({ set: prefs });
+    .onConflictDoUpdate({
+      target: notificationPreferences.userId,
+      set: { ...prefs, updatedAt: new Date() },
+    });
 }
 
 export async function getAllUsersForBroadcast() {
@@ -528,16 +539,18 @@ export async function getRevenueByDate(days: number = 30): Promise<Array<{ date:
   startDate.setDate(startDate.getDate() - days);
   const startDateStr = startDate.toISOString().split('T')[0];
   
-  // Use raw SQL to avoid MySQL GROUP BY strict mode issues
-  const result = await db.execute(
-    sql`SELECT DATE(createdAt) as date, SUM(total) as revenue, COUNT(id) as orders 
-        FROM orders 
-        WHERE status = 'delivered' AND createdAt >= ${startDateStr}
-        GROUP BY DATE(createdAt)
-        ORDER BY DATE(createdAt) DESC`
-  );
-  
-  return ((result as any[])?.[0] as any[]) || [];
+  const result = await db
+    .select({
+      date: sql<string>`DATE(${orders.createdAt})`,
+      revenue: sum(orders.total),
+      orders: count(orders.id),
+    })
+    .from(orders)
+    .where(and(eq(orders.status, "delivered"), gte(orders.createdAt, new Date(`${startDateStr}T00:00:00.000Z`))))
+    .groupBy(sql`DATE(${orders.createdAt})`)
+    .orderBy(desc(sql`DATE(${orders.createdAt})`));
+
+  return result;
 }
 
 export async function getTopProducts(limit: number = 10) {
@@ -553,7 +566,7 @@ export async function getTopProducts(limit: number = 10) {
     })
     .from(orderItems)
     .leftJoin(products, eq(orderItems.productId, products.id))
-    .groupBy(orderItems.productId)
+    .groupBy(orderItems.productId, products.name)
     .orderBy(desc(sum(orderItems.quantity)))
     .limit(limit);
   
@@ -668,7 +681,7 @@ export async function getAllCustomers() {
       lastSignedIn: users.lastSignedIn,
     })
     .from(users)
-    .where(eq(users.role, sql`'user'`))
+    .where(eq(users.role, "user"))
     .orderBy(desc(users.createdAt));
   
   return result;
@@ -705,8 +718,6 @@ export async function getEmailListForMarketing() {
   
   return result;
 }
-
-import { asc } from "drizzle-orm";
 
 // ── Reviews ──────────────────────────────────────────────────────────────────
 export async function createReview(review: InsertReview) {
