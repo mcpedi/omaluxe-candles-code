@@ -1,29 +1,37 @@
 import { trpc } from "@/lib/trpc";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ProductCard from "@/components/ProductCard";
 import { ProductGridSkeleton } from "@/components/LoadingSkeletons";
-import { Search } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 
 type FilterType = "all" | "featured" | "bestsellers";
 
 export default function Shop() {
   const [filter, setFilter] = useState<FilterType>("all");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [loadedProducts, setLoadedProducts] = useState<any[]>([]);
 
-  const { data: products, isLoading } = trpc.products.list.useQuery();
-
-  const filtered = products?.filter((p) => {
-    const matchesSearch =
-      !search ||
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      (p.scentNotes ?? "").toLowerCase().includes(search.toLowerCase()) ||
-      (p.description ?? "").toLowerCase().includes(search.toLowerCase());
-    const matchesFilter =
-      filter === "all" ||
-      (filter === "featured" && p.isFeatured) ||
-      (filter === "bestsellers" && p.isBestseller);
-    return matchesSearch && matchesFilter;
+  const { data: pageData, isLoading, isFetching } = trpc.products.page.useQuery({
+    page,
+    pageSize: 8,
+    search: search.trim() || undefined,
+    filter,
   });
+
+  useEffect(() => {
+    if (!pageData) return;
+    setLoadedProducts((current) => {
+      if (pageData.page === 1) return pageData.items;
+      const existingIds = new Set(current.map((product) => product.id));
+      return [...current, ...pageData.items.filter((product) => !existingIds.has(product.id))];
+    });
+  }, [pageData]);
+
+  const resetCatalog = () => {
+    setPage(1);
+    setLoadedProducts([]);
+  };
 
   return (
     <div className="min-h-screen pt-20">
@@ -44,7 +52,10 @@ export default function Shop() {
               type="text"
               placeholder="Search by name or scent..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                resetCatalog();
+              }}
               className="w-full bg-white border border-[oklch(0.88_0.015_75)] pl-10 pr-4 py-3 font-sans text-sm text-[oklch(0.18_0.015_60)] focus:outline-none focus:border-[oklch(0.62_0.12_70)] transition-colors"
             />
           </div>
@@ -57,7 +68,10 @@ export default function Shop() {
           {(["all", "featured", "bestsellers"] as FilterType[]).map((f) => (
             <button
               key={f}
-              onClick={() => setFilter(f)}
+              onClick={() => {
+                setFilter(f);
+                resetCatalog();
+              }}
               className={`font-sans text-xs tracking-[0.15em] uppercase px-6 py-3 transition-all duration-200 border-b-2 -mb-px ${
                 filter === f
                   ? "border-[oklch(0.38_0.07_55)] text-[oklch(0.38_0.07_55)]"
@@ -68,19 +82,39 @@ export default function Shop() {
             </button>
           ))}
           <div className="ml-auto font-sans text-xs text-[oklch(0.52_0.02_60)]">
-            {filtered?.length ?? 0} products
+            {pageData?.total ?? 0} products
           </div>
         </div>
 
         {/* Grid */}
         {isLoading ? (
           <ProductGridSkeleton />
-        ) : filtered && filtered.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filtered.map((product) => (
+        ) : loadedProducts.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {loadedProducts.map((product) => (
               <ProductCard key={product.id} {...product} />
             ))}
-          </div>
+            </div>
+            {pageData?.hasMore && (
+              <div className="flex justify-center mt-12">
+                <button
+                  type="button"
+                  onClick={() => setPage((current) => current + 1)}
+                  disabled={isFetching}
+                  className="btn-luxury-outline min-w-44 flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  {isFetching && <Loader2 size={14} className="animate-spin" />}
+                  {isFetching ? "Loading products…" : "Load More Products"}
+                </button>
+              </div>
+            )}
+            {pageData && !pageData.hasMore && loadedProducts.length > 0 && (
+              <p className="text-center mt-10 font-sans text-xs text-[oklch(0.58_0.02_60)]" aria-live="polite">
+                You&apos;ve reached the end of the collection.
+              </p>
+            )}
+          </>
         ) : (
           <div className="text-center py-20">
             <p className="font-serif text-2xl text-[oklch(0.52_0.02_60)] mb-2">No products found</p>

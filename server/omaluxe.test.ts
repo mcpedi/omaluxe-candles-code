@@ -25,6 +25,13 @@ vi.mock("./db", () => ({
       updatedAt: new Date(),
     },
   ]),
+  getProductsPage: vi.fn().mockResolvedValue({
+    items: [{ id: 1, name: "Velvet Rose & Oud" }],
+    page: 1,
+    pageSize: 8,
+    total: 1,
+    hasMore: false,
+  }),
   getFeaturedProducts: vi.fn().mockResolvedValue([]),
   getBestsellerProducts: vi.fn().mockResolvedValue([]),
   getProductBySlug: vi.fn().mockResolvedValue({
@@ -137,6 +144,15 @@ describe("products", () => {
     expect(Array.isArray(products)).toBe(true);
     expect(products.length).toBeGreaterThan(0);
     expect(products[0].name).toBe("Velvet Rose & Oud");
+  });
+
+  it("returns a paginated product page", async () => {
+    const caller = appRouter.createCaller(makePublicCtx());
+    const result = await caller.products.page({ page: 1, pageSize: 8, filter: "all" });
+    expect(result.page).toBe(1);
+    expect(result.pageSize).toBe(8);
+    expect(result.items).toHaveLength(1);
+    expect(result.hasMore).toBe(false);
   });
 
   it("gets product by slug", async () => {

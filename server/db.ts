@@ -1,4 +1,4 @@
-import { eq, and, desc, like, gte, sum, count, sql, asc } from "drizzle-orm";
+import { eq, and, desc, like, ilike, gte, sum, count, sql, asc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { InsertUser, cartItems, categories, orderItems, orders, products, users, notifications, notificationPreferences, InsertNotification, wishlistItems, coupons, Coupon, InsertCoupon, reviews, Review, InsertReview } from "../drizzle/schema";
@@ -74,6 +74,39 @@ export async function getAllProducts() {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(products).orderBy(desc(products.createdAt));
+}
+
+export async function getProductsPage(options: {
+  page: number;
+  pageSize: number;
+  search?: string;
+  filter?: "all" | "featured" | "bestsellers";
+}) {
+  const db = await getDb();
+  if (!db) return { items: [], page: options.page, pageSize: options.pageSize, total: 0, hasMore: false };
+
+  const page = Math.max(1, Math.floor(options.page));
+  const pageSize = Math.min(48, Math.max(1, Math.floor(options.pageSize)));
+  const search = options.search?.trim();
+  const conditions = [];
+
+  if (search) {
+    const term = `%${search}%`;
+    conditions.push(
+      sql`(${ilike(products.name, term)} OR ${ilike(products.scentNotes, term)} OR ${ilike(products.description, term)})`
+    );
+  }
+  if (options.filter === "featured") conditions.push(eq(products.isFeatured, true));
+  if (options.filter === "bestsellers") conditions.push(eq(products.isBestseller, true));
+
+  const where = conditions.length > 0 ? and(...conditions) : undefined;
+  const [items, totalRows] = await Promise.all([
+    db.select().from(products).where(where).orderBy(desc(products.createdAt), desc(products.id)).limit(pageSize).offset((page - 1) * pageSize),
+    db.select({ total: count(products.id) }).from(products).where(where),
+  ]);
+  const total = Number(totalRows[0]?.total ?? 0);
+
+  return { items, page, pageSize, total, hasMore: page * pageSize < total };
 }
 
 export async function getFeaturedProducts() {

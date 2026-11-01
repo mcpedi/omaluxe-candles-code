@@ -15,6 +15,7 @@ import {
   deleteProduct,
   getAllOrders,
   getAllProducts,
+  getProductsPage,
   getAllUsersForBroadcast,
   getBestsellerProducts,
   getCartItems,
@@ -93,6 +94,19 @@ export const appRouter = router({
       await seedProducts();
       return getAllProducts();
     }),
+    page: publicProcedure
+      .input(
+        z.object({
+          page: z.number().int().min(1).default(1),
+          pageSize: z.number().int().min(1).max(48).default(8),
+          search: z.string().trim().max(100).optional(),
+          filter: z.enum(["all", "featured", "bestsellers"]).default("all"),
+        })
+      )
+      .query(async ({ input }) => {
+        await seedProducts();
+        return getProductsPage(input);
+      }),
     featured: publicProcedure.query(async () => {
       await seedProducts();
       return getFeaturedProducts();
