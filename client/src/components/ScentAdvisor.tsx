@@ -33,6 +33,12 @@ export default function ScentAdvisor() {
   });
 
   useEffect(() => {
+    const openAdvisor = () => setIsOpen(true);
+    window.addEventListener("omaluxe:open-scent-advisor", openAdvisor);
+    return () => window.removeEventListener("omaluxe:open-scent-advisor", openAdvisor);
+  }, []);
+
+  useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
@@ -72,7 +78,9 @@ export default function ScentAdvisor() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-[oklch(0.38_0.07_55)] text-white shadow-lg hover:bg-[oklch(0.28_0.05_55)] transition-all duration-300 flex items-center justify-center group"
-        aria-label="Open scent advisor"
+        aria-label={isOpen ? "Close scent advisor" : "Open scent advisor"}
+        aria-expanded={isOpen}
+        aria-controls="scent-advisor-panel"
       >
         {isOpen ? (
           <ChevronDown size={22} strokeWidth={1.5} />
@@ -88,8 +96,8 @@ export default function ScentAdvisor() {
 
       {/* Chat window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-50 w-[360px] max-w-[calc(100vw-3rem)] bg-white border border-[oklch(0.88_0.015_75)] shadow-2xl flex flex-col"
-          style={{ height: "480px" }}>
+        <div id="scent-advisor-panel" role="dialog" aria-label="Oma scent advisor" className="fixed bottom-24 right-6 z-50 w-[360px] max-w-[calc(100vw-3rem)] bg-white border border-[oklch(0.88_0.015_75)] shadow-2xl flex flex-col"
+          style={{ height: "min(480px, calc(100dvh - 8rem))" }}>
           {/* Header */}
           <div className="bg-[oklch(0.18_0.015_60)] px-5 py-4 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
@@ -103,6 +111,7 @@ export default function ScentAdvisor() {
             </div>
             <button
               onClick={() => setIsOpen(false)}
+              aria-label="Close scent advisor"
               className="text-white/60 hover:text-white transition-colors"
             >
               <X size={16} />

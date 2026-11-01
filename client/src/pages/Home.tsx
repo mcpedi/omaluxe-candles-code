@@ -28,12 +28,12 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* ── Hero ─────────────────────────────────────────────────────────────── */}
-      <section className="relative h-screen min-h-[600px] flex items-center overflow-hidden">
+      <section className="relative min-h-[min(760px,calc(100svh-4rem))] h-[min(900px,calc(100svh-4rem))] flex items-center overflow-hidden">
         {/* Background image */}
         <div className="absolute inset-0">
           <img
             src={HERO_IMAGE}
-            alt="OmaLuxe hero"
+            alt="A softly glowing OmaLuxe candle in a warm, refined interior"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[oklch(0.10_0.015_55/0.75)] via-[oklch(0.10_0.015_55/0.45)] to-transparent" />
@@ -136,7 +136,7 @@ export default function Home() {
       {/* ── Lifestyle Banner ──────────────────────────────────────────────────── */}
       <section className="relative py-32 overflow-hidden">
         <div className="absolute inset-0">
-          <img src={LIFESTYLE_IMAGE} alt="Lifestyle" className="w-full h-full object-cover" />
+          <img src={LIFESTYLE_IMAGE} alt="A candle-lit moment designed for a calm, welcoming home" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-[oklch(0.10_0.015_55/0.65)]" />
         </div>
         <div className="relative container text-center">
@@ -194,11 +194,13 @@ export default function Home() {
           <p className="font-sans text-sm text-[oklch(0.75_0.01_80)] max-w-md mx-auto mb-8 leading-relaxed">
             Not sure where to start? Let Oma, our AI scent advisor, guide you to the perfect fragrance based on your mood and preferences.
           </p>
-          <Link href="/shop">
-            <button className="btn-luxury bg-[oklch(0.72_0.12_75)] border-[oklch(0.72_0.12_75)] hover:bg-[oklch(0.62_0.12_70)] hover:border-[oklch(0.62_0.12_70)]">
-              Talk to Oma ✦
-            </button>
-          </Link>
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("omaluxe:open-scent-advisor"))}
+            className="btn-luxury bg-[oklch(0.72_0.12_75)] border-[oklch(0.72_0.12_75)] hover:bg-[oklch(0.62_0.12_70)] hover:border-[oklch(0.62_0.12_70)]"
+          >
+            Talk to Oma <span aria-hidden="true">✦</span>
+          </button>
         </div>
       </section>
     </div>
