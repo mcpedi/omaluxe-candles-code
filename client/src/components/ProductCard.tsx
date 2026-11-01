@@ -1,8 +1,10 @@
 import { Link } from "wouter";
-import { ShoppingBag, Star } from "lucide-react";
+import { Eye, ShoppingBag, Star } from "lucide-react";
+import { useState } from "react";
 import WishlistButton from "./WishlistButton";
 import { trpc } from "@/lib/trpc";
 import { getReviewSummaryLabel } from "@/lib/reviewSummary";
+import QuickViewDialog from "./QuickViewDialog";
 
 interface ProductCardProps {
   id: number;
@@ -10,7 +12,11 @@ interface ProductCardProps {
   slug: string;
   price: string;
   imageUrl?: string | null;
+  description?: string | null;
   scentNotes?: string | null;
+  burnTime?: string | null;
+  mood?: string | null;
+  sizes?: { label: string; price: number }[] | null;
   isBestseller?: boolean;
   isFeatured?: boolean;
   onAddToCart?: () => void;
@@ -23,12 +29,17 @@ export default function ProductCard({
   slug,
   price,
   imageUrl,
+  description,
   scentNotes,
+  burnTime,
+  mood,
+  sizes,
   isBestseller,
   isFeatured,
   onAddToCart,
   showWishlist = true,
 }: ProductCardProps) {
+  const [quickViewOpen, setQuickViewOpen] = useState(false);
   const { data: ratingData, isLoading: ratingLoading, isError: ratingError } =
     trpc.reviews.averageRating.useQuery({ productId: id });
   const reviewSummaryLabel = getReviewSummaryLabel(ratingData, {
@@ -128,13 +139,28 @@ export default function ProductCard({
           <span className="font-sans text-sm font-medium text-[oklch(0.38_0.07_55)]">
             From KSh {parseFloat(price).toFixed(2)}
           </span>
-          <Link href={`/product/${slug}`}>
-            <span className="font-sans text-[10px] tracking-[0.12em] uppercase text-[oklch(0.52_0.02_60)] hover:text-[oklch(0.38_0.07_55)] transition-colors cursor-pointer">
-              View →
-            </span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setQuickViewOpen(true)}
+              className="font-sans text-[10px] tracking-[0.1em] uppercase text-[oklch(0.52_0.02_60)] hover:text-[oklch(0.38_0.07_55)] transition-colors inline-flex items-center gap-1"
+              aria-label={`Quick view ${name}`}
+            >
+              <Eye size={12} /> Quick View
+            </button>
+            <Link href={`/product/${slug}`}>
+              <span className="font-sans text-[10px] tracking-[0.12em] uppercase text-[oklch(0.52_0.02_60)] hover:text-[oklch(0.38_0.07_55)] transition-colors cursor-pointer">
+                View →
+              </span>
+            </Link>
+          </div>
         </div>
       </div>
+      <QuickViewDialog
+        product={{ id, name, slug, price, imageUrl, description, scentNotes, burnTime, mood, sizes }}
+        open={quickViewOpen}
+        onOpenChange={setQuickViewOpen}
+      />
     </div>
   );
 }
