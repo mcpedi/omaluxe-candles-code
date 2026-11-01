@@ -4,6 +4,7 @@ import { getLoginUrl } from "@/const";
 import { useState } from "react";
 import { Link } from "wouter";
 import { Package, ChevronDown, ChevronUp } from "lucide-react";
+import { OrderListSkeleton, PageSpinner } from "@/components/LoadingSkeletons";
 
 export default function Account() {
   const { user, isAuthenticated, loading, logout } = useAuth();
@@ -14,11 +15,7 @@ export default function Account() {
   });
 
   if (loading) {
-    return (
-      <div className="min-h-screen pt-20 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[oklch(0.72_0.12_75)] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <PageSpinner label="Checking your account" />;
   }
 
   if (!isAuthenticated) {
@@ -80,9 +77,7 @@ export default function Account() {
             <h1 className="font-serif text-3xl font-light text-[oklch(0.18_0.015_60)] mb-8">My Orders</h1>
 
             {isLoading ? (
-              <div className="text-center py-10">
-                <div className="w-6 h-6 border-2 border-[oklch(0.72_0.12_75)] border-t-transparent rounded-full animate-spin mx-auto" />
-              </div>
+              <OrderListSkeleton />
             ) : orders && orders.length > 0 ? (
               <div className="space-y-4">
                 {orders.map((order) => (

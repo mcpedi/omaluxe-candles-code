@@ -6,6 +6,7 @@ import { Plus, Edit2, Trash2, Package, ShoppingBag, Eye } from "lucide-react";
 import ImageUploadField from "@/components/ImageUploadField";
 import AdminDashboard from "@/components/AdminDashboard";
 import { trpc } from "@/lib/trpc";
+import { AdminTableSkeleton, PageSpinner } from "@/components/LoadingSkeletons";
 
 type AdminTab = "products" | "orders" | "dashboard";
 
@@ -42,11 +43,7 @@ export default function Admin() {
   });
 
   if (loading) {
-    return (
-      <div className="min-h-screen pt-20 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[oklch(0.72_0.12_75)] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <PageSpinner label="Checking admin access" />;
   }
 
   if (!isAuthenticated || user?.role !== "admin") {
@@ -132,9 +129,7 @@ export default function Admin() {
             </div>
 
             {productsLoading ? (
-              <div className="text-center py-10">
-                <div className="w-6 h-6 border-2 border-[oklch(0.72_0.12_75)] border-t-transparent rounded-full animate-spin mx-auto" />
-              </div>
+              <AdminTableSkeleton columns={6} />
             ) : (
               <div className="bg-white border border-[oklch(0.88_0.015_75)] overflow-hidden">
                 <table className="w-full">
@@ -219,9 +214,7 @@ export default function Admin() {
             </div>
 
             {ordersLoading ? (
-              <div className="text-center py-10">
-                <div className="w-6 h-6 border-2 border-[oklch(0.72_0.12_75)] border-t-transparent rounded-full animate-spin mx-auto" />
-              </div>
+              <AdminTableSkeleton columns={5} />
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">

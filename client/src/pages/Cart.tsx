@@ -4,6 +4,7 @@ import { getLoginUrl } from "@/const";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
+import { CartSkeleton } from "@/components/LoadingSkeletons";
 
 export default function Cart() {
   const { isAuthenticated } = useAuth();
@@ -37,11 +38,7 @@ export default function Cart() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen pt-20 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[oklch(0.72_0.12_75)] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <CartSkeleton />;
   }
 
   const subtotal = cartItems?.reduce(

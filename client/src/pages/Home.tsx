@@ -2,14 +2,15 @@ import { useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import ProductCard from "@/components/ProductCard";
+import { ProductGridSkeleton } from "@/components/LoadingSkeletons";
 import { Flame, Leaf, Award, ArrowRight } from "lucide-react";
 
 const HERO_IMAGE = "https://d2xsxph8kpxj0f.cloudfront.net/310519663535558553/KyKey2VrFEZNwKpbpdN6tN/hero-candle_55821378.jpg";
 const LIFESTYLE_IMAGE = "https://d2xsxph8kpxj0f.cloudfront.net/310519663535558553/KyKey2VrFEZNwKpbpdN6tN/hero-lifestyle_9873737f.jpg";
 
 export default function Home() {
-  const { data: featured } = trpc.products.featured.useQuery();
-  const { data: bestsellers } = trpc.products.bestsellers.useQuery();
+  const { data: featured, isLoading: featuredLoading } = trpc.products.featured.useQuery();
+  const { data: bestsellers, isLoading: bestsellersLoading } = trpc.products.bestsellers.useQuery();
 
   useEffect(() => {
     document.title = "OmaLuxe Candles and Scents | Luxury Candles";
@@ -96,7 +97,7 @@ export default function Home() {
       </section>
 
       {/* ── Featured Collections ──────────────────────────────────────────────── */}
-      {featured && featured.length > 0 && (
+      {(featuredLoading || (featured && featured.length > 0)) && (
         <section className="py-20">
           <div className="container">
             <div className="text-center mb-14">
@@ -110,18 +111,24 @@ export default function Home() {
                 <div className="h-px w-16 bg-[oklch(0.72_0.12_75/0.4)]" />
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featured.map((product) => (
-                <ProductCard key={product.id} {...product} />
-              ))}
-            </div>
-            <div className="text-center mt-12">
-              <Link href="/shop">
-                <button className="btn-luxury-outline">
-                  View All Products <ArrowRight size={14} />
-                </button>
-              </Link>
-            </div>
+            {featuredLoading ? (
+              <ProductGridSkeleton count={3} />
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {featured?.map((product) => (
+                    <ProductCard key={product.id} {...product} />
+                  ))}
+                </div>
+                <div className="text-center mt-12">
+                  <Link href="/shop">
+                    <button className="btn-luxury-outline">
+                      View All Products <ArrowRight size={14} />
+                    </button>
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
         </section>
       )}
@@ -150,7 +157,7 @@ export default function Home() {
       </section>
 
       {/* ── Bestsellers ───────────────────────────────────────────────────────── */}
-      {bestsellers && bestsellers.length > 0 && (
+      {(bestsellersLoading || (bestsellers && bestsellers.length > 0)) && (
         <section className="py-20 bg-[oklch(0.96_0.012_80)]">
           <div className="container">
             <div className="text-center mb-14">
@@ -164,11 +171,15 @@ export default function Home() {
                 <div className="h-px w-16 bg-[oklch(0.72_0.12_75/0.4)]" />
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {bestsellers.slice(0, 4).map((product) => (
-                <ProductCard key={product.id} {...product} />
-              ))}
-            </div>
+            {bestsellersLoading ? (
+              <ProductGridSkeleton count={4} />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {bestsellers?.slice(0, 4).map((product) => (
+                  <ProductCard key={product.id} {...product} />
+                ))}
+              </div>
+            )}
           </div>
         </section>
       )}

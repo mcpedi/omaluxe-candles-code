@@ -1,6 +1,7 @@
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
 import ProductCard from "@/components/ProductCard";
+import { ProductGridSkeleton } from "@/components/LoadingSkeletons";
 import { Search } from "lucide-react";
 
 type FilterType = "all" | "featured" | "bestsellers";
@@ -73,11 +74,7 @@ export default function Shop() {
 
         {/* Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="aspect-[3/4] bg-[oklch(0.94_0.012_80)] animate-pulse" />
-            ))}
-          </div>
+          <ProductGridSkeleton />
         ) : filtered && filtered.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filtered.map((product) => (

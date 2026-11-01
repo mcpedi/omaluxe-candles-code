@@ -7,6 +7,7 @@ import { Minus, Plus, ShoppingBag, Clock, Leaf, ChevronLeft } from "lucide-react
 import { toast } from "sonner";
 import WishlistButton from "@/components/WishlistButton";
 import { ProductReviews } from "@/components/ProductReviews";
+import { ProductDetailSkeleton } from "@/components/LoadingSkeletons";
 
 export default function ProductDetail() {
   const params = useParams<{ slug: string }>();
@@ -32,11 +33,7 @@ export default function ProductDetail() {
   });
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen pt-20 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[oklch(0.72_0.12_75)] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <ProductDetailSkeleton />;
   }
 
   if (!product) {
