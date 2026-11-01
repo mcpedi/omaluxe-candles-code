@@ -10,8 +10,12 @@ export default async function handler(_request: unknown, response: any) {
   try {
     const [state] = await sql`
       SELECT
-        EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'omaluxe') AS schema_exists,
-        EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'omaluxe' AND table_name = 'products') AS products_table_exists,
+        to_regnamespace('omaluxe') IS NOT NULL AS schema_exists,
+        CASE
+          WHEN to_regnamespace('omaluxe') IS NULL THEN false
+          ELSE has_schema_privilege(current_user, 'omaluxe', 'USAGE')
+        END AS schema_usage,
+        to_regclass('omaluxe.products') IS NOT NULL AS products_table_exists,
         CASE
           WHEN to_regclass('omaluxe.products') IS NULL THEN false
           ELSE has_table_privilege(current_user, 'omaluxe.products', 'SELECT')
