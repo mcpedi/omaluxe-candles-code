@@ -4,10 +4,10 @@ The OmaLuxe database was migrated from the Manus MySQL database to PostgreSQL on
 
 ## Connection and isolation
 
-- The server prefers the project secret `NEON_DATABASE_URL` and falls back to `DATABASE_URL` for compatibility.
+- The server uses the project secret `NEON_DATABASE_URL` exclusively; `DATABASE_URL` is not used by the application runtime.
 - OmaLuxe tables and enum types live in the dedicated PostgreSQL schema `omaluxe`.
 - The supplied Neon database already contained another application in `public`; no public tables were modified, dropped, or overwritten.
-- The original Manus database remains intact as a rollback source.
+- The original Manus database remains intact as an archived rollback source and is not modified by the application.
 
 ## Imported row counts
 

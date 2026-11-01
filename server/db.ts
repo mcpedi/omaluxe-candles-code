@@ -8,7 +8,7 @@ let _client: ReturnType<typeof postgres> | null = null;
 let _db: ReturnType<typeof drizzle> | null = null;
 
 export async function getDb() {
-  const connectionString = process.env.NEON_DATABASE_URL ?? process.env.DATABASE_URL;
+  const connectionString = process.env.NEON_DATABASE_URL;
   if (!_db && connectionString) {
     try {
       _client = postgres(connectionString, { max: 10, prepare: false });
