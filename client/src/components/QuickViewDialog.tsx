@@ -71,7 +71,7 @@ export default function QuickViewDialog({ product, open, onOpenChange }: QuickVi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[oklch(0.98_0.006_80)] border-[oklch(0.88_0.015_75)] p-0 overflow-hidden sm:max-w-3xl">
+      <DialogContent className="bg-[oklch(0.98_0.006_80)] border-[oklch(0.88_0.015_75)] p-0 overflow-hidden sm:max-w-3xl ease-out duration-300 data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-bottom-2 data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:slide-out-to-bottom-2 data-[state=closed]:duration-200">
         <div className="grid grid-cols-1 sm:grid-cols-2 max-h-[90vh] overflow-y-auto">
           <div className="relative aspect-[4/5] sm:aspect-auto min-h-72 bg-[oklch(0.94_0.012_80)]">
             {product.imageUrl ? (
