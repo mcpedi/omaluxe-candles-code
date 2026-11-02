@@ -92,7 +92,16 @@ export default function Footer() {
           </div>
           <div className="text-center">
             <p className="font-sans text-xs text-[oklch(0.52_0.01_70)]">
-              Designed & built by <span className="font-semibold text-[oklch(0.72_0.12_75)]">Jacks Web Solutions</span>
+              Designed & built by{" "}
+              <a
+                href="https://jackstech-web-solutions.vercel.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Visit Jacks Web Solutions website (opens in a new tab)"
+                className="font-semibold text-[oklch(0.72_0.12_75)] transition-colors hover:underline underline-offset-4"
+              >
+                Jacks Web Solutions
+              </a>
             </p>
           </div>
         </div>
