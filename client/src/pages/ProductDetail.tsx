@@ -84,7 +84,7 @@ export default function ProductDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           {/* Image */}
           <div className="relative">
-            <div className="aspect-[4/5] overflow-hidden bg-[oklch(0.96_0.012_80)]">
+            <div className="aspect-[4/5] overflow-hidden bg-[oklch(0.88_0.025_66/0.84)]">
               {product.imageUrl ? (
                 <img
                   src={product.imageUrl}
@@ -125,7 +125,7 @@ export default function ProductDetail() {
 
             {/* Scent Notes */}
             {product.scentNotes && (
-              <div className="mb-8 p-5 bg-[oklch(0.96_0.012_80)] border-l-2 border-[oklch(0.72_0.12_75)]">
+              <div className="mb-8 p-5 bg-[oklch(0.88_0.025_66/0.84)] border-l-2 border-[oklch(0.72_0.12_75)]">
                 <p className="font-sans text-[10px] tracking-[0.2em] uppercase text-[oklch(0.62_0.12_70)] mb-2">Scent Notes</p>
                 <p className="font-sans text-sm text-[oklch(0.38_0.04_60)] leading-relaxed">{product.scentNotes}</p>
               </div>
@@ -170,7 +170,7 @@ export default function ProductDetail() {
               <div className="flex items-center gap-0 w-fit border border-[oklch(0.88_0.015_75)]">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-10 h-10 flex items-center justify-center text-[oklch(0.38_0.04_60)] hover:bg-[oklch(0.94_0.012_80)] transition-colors"
+                  className="w-10 h-10 flex items-center justify-center text-[oklch(0.38_0.04_60)] hover:bg-[oklch(0.85_0.025_66/0.86)] transition-colors"
                 >
                   <Minus size={14} />
                 </button>
@@ -179,7 +179,7 @@ export default function ProductDetail() {
                 </span>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="w-10 h-10 flex items-center justify-center text-[oklch(0.38_0.04_60)] hover:bg-[oklch(0.94_0.012_80)] transition-colors"
+                  className="w-10 h-10 flex items-center justify-center text-[oklch(0.38_0.04_60)] hover:bg-[oklch(0.85_0.025_66/0.86)] transition-colors"
                 >
                   <Plus size={14} />
                 </button>

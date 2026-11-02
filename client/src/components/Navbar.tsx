@@ -41,7 +41,7 @@ export default function Navbar() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "bg-[oklch(0.98_0.008_85/0.97)] backdrop-blur-md shadow-sm border-b border-[oklch(0.88_0.015_75)]"
+          ? "bg-[oklch(0.88_0.025_66/0.94)] backdrop-blur-md shadow-sm border-b border-[oklch(0.88_0.015_75)]"
           : "bg-transparent"
       }`}
     >
@@ -110,25 +110,25 @@ export default function Navbar() {
                       <p className="font-sans text-xs text-[oklch(0.52_0.02_60)] truncate">{user?.name}</p>
                     </div>
                     <Link href="/account">
-                      <button className="w-full flex items-center gap-2 px-4 py-2 font-sans text-xs text-[oklch(0.38_0.04_60)] hover:bg-[oklch(0.94_0.012_80)] transition-colors">
+                      <button className="w-full flex items-center gap-2 px-4 py-2 font-sans text-xs text-[oklch(0.38_0.04_60)] hover:bg-[oklch(0.85_0.025_66/0.86)] transition-colors">
                         <User size={14} /> My Orders
                       </button>
                     </Link>
                     <Link href="/wishlist">
-                      <button className="w-full flex items-center gap-2 px-4 py-2 font-sans text-xs text-[oklch(0.38_0.04_60)] hover:bg-[oklch(0.94_0.012_80)] transition-colors">
+                      <button className="w-full flex items-center gap-2 px-4 py-2 font-sans text-xs text-[oklch(0.38_0.04_60)] hover:bg-[oklch(0.85_0.025_66/0.86)] transition-colors">
                         <span>❤️</span> My Wishlist
                       </button>
                     </Link>
                     {user?.role === "admin" && (
                       <Link href="/admin">
-                        <button className="w-full flex items-center gap-2 px-4 py-2 font-sans text-xs text-[oklch(0.38_0.04_60)] hover:bg-[oklch(0.94_0.012_80)] transition-colors">
+                        <button className="w-full flex items-center gap-2 px-4 py-2 font-sans text-xs text-[oklch(0.38_0.04_60)] hover:bg-[oklch(0.85_0.025_66/0.86)] transition-colors">
                           <Settings size={14} /> Admin Panel
                         </button>
                       </Link>
                     )}
                     <button
                       onClick={logout}
-                      className="w-full flex items-center gap-2 px-4 py-2 font-sans text-xs text-[oklch(0.38_0.04_60)] hover:bg-[oklch(0.94_0.012_80)] transition-colors"
+                      className="w-full flex items-center gap-2 px-4 py-2 font-sans text-xs text-[oklch(0.38_0.04_60)] hover:bg-[oklch(0.85_0.025_66/0.86)] transition-colors"
                     >
                       <LogOut size={14} /> Sign Out
                     </button>
@@ -154,7 +154,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden bg-[oklch(0.98_0.008_85)] border-t border-[oklch(0.88_0.015_75)]">
+        <div className="md:hidden bg-[oklch(0.88_0.025_66/0.84)] border-t border-[oklch(0.88_0.015_75)]">
           <div className="container py-6 flex flex-col gap-4">
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href}>

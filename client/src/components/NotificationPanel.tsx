@@ -155,8 +155,8 @@ export default function NotificationPanel() {
                     key={notif.id}
                     className={`flex gap-3 px-4 py-3 border-b border-[oklch(0.94_0.012_80)] transition-colors cursor-pointer ${
                       notif.isRead
-                        ? "bg-white hover:bg-[oklch(0.98_0.008_85)]"
-                        : "bg-[oklch(0.97_0.01_80)] hover:bg-[oklch(0.95_0.012_80)]"
+                        ? "bg-white hover:bg-[oklch(0.88_0.025_66/0.84)]"
+                        : "bg-[oklch(0.89_0.02_68/0.86)] hover:bg-[oklch(0.87_0.02_68/0.86)]"
                     }`}
                     onClick={() => {
                       if (!notif.isRead) markRead.mutate({ id: notif.id });
@@ -210,7 +210,7 @@ export default function NotificationPanel() {
           </div>
 
           {/* Footer */}
-          <div className="px-4 py-2.5 border-t border-[oklch(0.92_0.012_80)] bg-[oklch(0.98_0.008_85)]">
+          <div className="px-4 py-2.5 border-t border-[oklch(0.92_0.012_80)] bg-[oklch(0.88_0.025_66/0.84)]">
             <Link
               href="/account/notifications"
               onClick={() => setOpen(false)}

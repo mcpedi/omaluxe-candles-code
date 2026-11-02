@@ -47,7 +47,7 @@ export default function Wishlist() {
   const validItems = items.filter((item) => item.product);
 
   return (
-    <div className="min-h-screen pt-20 bg-[oklch(0.97_0.006_80)]">
+    <div className="min-h-screen pt-20 bg-[oklch(0.89_0.02_68/0.86)]">
       <div className="container py-12">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-8">

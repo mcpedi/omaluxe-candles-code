@@ -80,7 +80,7 @@ export default function NotificationPreferences() {
   ];
 
   return (
-    <div className="min-h-screen bg-[oklch(0.98_0.008_85)] py-16">
+    <div className="min-h-screen bg-[oklch(0.88_0.025_66/0.84)] py-16">
       <div className="max-w-2xl mx-auto px-4">
         {/* Back link */}
         <Link href="/account" className="inline-flex items-center gap-2 font-sans text-xs tracking-[0.1em] uppercase text-[oklch(0.52_0.02_60)] hover:text-[oklch(0.38_0.07_55)] transition-colors mb-8">
@@ -118,7 +118,7 @@ export default function NotificationPreferences() {
                 }`}
                 onClick={() => item.setter(!item.value)}
               >
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[oklch(0.96_0.012_80)] flex items-center justify-center">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[oklch(0.88_0.025_66/0.84)] flex items-center justify-center">
                   {item.icon}
                 </div>
                 <div className="flex-1">

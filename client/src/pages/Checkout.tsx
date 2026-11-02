@@ -200,12 +200,12 @@ export default function Checkout() {
 
             {/* Order Summary */}
             <div className="lg:col-span-1">
-              <div className="bg-[oklch(0.96_0.012_80)] border border-[oklch(0.88_0.015_75)] p-6 sticky top-24">
+              <div className="bg-[oklch(0.88_0.025_66/0.84)] border border-[oklch(0.88_0.015_75)] p-6 sticky top-24">
                 <h2 className="font-serif text-xl font-medium text-[oklch(0.18_0.015_60)] mb-5">Your Order</h2>
                 <div className="space-y-3 mb-5">
                   {cartItems.map((item) => (
                     <div key={item.id} className="flex items-start gap-3">
-                      <div className="w-12 h-14 bg-[oklch(0.92_0.012_80)] shrink-0 overflow-hidden">
+                      <div className="w-12 h-14 bg-[oklch(0.84_0.025_66/0.86)] shrink-0 overflow-hidden">
                         {item.product?.imageUrl && (
                           <img src={item.product.imageUrl} alt={item.product.name} className="w-full h-full object-cover" />
                         )}

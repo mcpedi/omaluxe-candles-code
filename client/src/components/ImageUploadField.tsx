@@ -88,7 +88,7 @@ export default function ImageUploadField({ value, onChange, label = "Product Ima
         />
         <label
           htmlFor="image-upload"
-          className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-[oklch(0.88_0.015_75)] px-4 py-6 bg-[oklch(0.97_0.006_80)] hover:bg-[oklch(0.94_0.008_80)] cursor-pointer transition-colors"
+          className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-[oklch(0.88_0.015_75)] px-4 py-6 bg-[oklch(0.89_0.02_68/0.86)] hover:bg-[oklch(0.85_0.02_68/0.86)] cursor-pointer transition-colors"
         >
           <Upload size={16} className="text-[oklch(0.62_0.12_70)]" />
           <span className="font-sans text-sm text-[oklch(0.52_0.02_60)]">

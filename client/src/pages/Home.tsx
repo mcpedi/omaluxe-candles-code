@@ -76,7 +76,7 @@ export default function Home() {
       </section>
 
       {/* ── Brand Values ─────────────────────────────────────────────────────── */}
-      <section className="py-16 bg-[oklch(0.96_0.012_80)]">
+      <section className="py-16 bg-[oklch(0.88_0.025_66/0.84)]">
         <div className="container">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             {[
@@ -158,7 +158,7 @@ export default function Home() {
 
       {/* ── Bestsellers ───────────────────────────────────────────────────────── */}
       {(bestsellersLoading || (bestsellers && bestsellers.length > 0)) && (
-        <section className="py-20 bg-[oklch(0.96_0.012_80)]">
+        <section className="py-20 bg-[oklch(0.88_0.025_66/0.84)]">
           <div className="container">
             <div className="text-center mb-14">
               <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-[oklch(0.62_0.12_70)] mb-3">Most Loved</p>

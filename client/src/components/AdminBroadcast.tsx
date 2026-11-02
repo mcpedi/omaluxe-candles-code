@@ -107,7 +107,7 @@ export default function AdminBroadcast() {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Summer Sale — 20% Off All Candles"
               maxLength={100}
-              className="w-full font-sans text-xs px-3 py-2.5 border border-[oklch(0.88_0.015_75)] rounded-lg bg-[oklch(0.98_0.008_85)] text-[oklch(0.18_0.015_60)] placeholder:text-[oklch(0.65_0.015_70)] focus:outline-none focus:border-[oklch(0.38_0.07_55)] transition-colors"
+              className="w-full font-sans text-xs px-3 py-2.5 border border-[oklch(0.88_0.015_75)] rounded-lg bg-[oklch(0.88_0.025_66/0.84)] text-[oklch(0.18_0.015_60)] placeholder:text-[oklch(0.65_0.015_70)] focus:outline-none focus:border-[oklch(0.38_0.07_55)] transition-colors"
             />
           </div>
 
@@ -122,7 +122,7 @@ export default function AdminBroadcast() {
               placeholder="Write your notification message here..."
               rows={3}
               maxLength={500}
-              className="w-full font-sans text-xs px-3 py-2.5 border border-[oklch(0.88_0.015_75)] rounded-lg bg-[oklch(0.98_0.008_85)] text-[oklch(0.18_0.015_60)] placeholder:text-[oklch(0.65_0.015_70)] focus:outline-none focus:border-[oklch(0.38_0.07_55)] transition-colors resize-none"
+              className="w-full font-sans text-xs px-3 py-2.5 border border-[oklch(0.88_0.015_75)] rounded-lg bg-[oklch(0.88_0.025_66/0.84)] text-[oklch(0.18_0.015_60)] placeholder:text-[oklch(0.65_0.015_70)] focus:outline-none focus:border-[oklch(0.38_0.07_55)] transition-colors resize-none"
             />
             <p className="font-sans text-[10px] text-[oklch(0.65_0.015_70)] mt-1 text-right">
               {message.length}/500

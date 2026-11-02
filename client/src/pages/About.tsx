@@ -60,7 +60,7 @@ export default function About() {
       </section>
 
       {/* Values */}
-      <section className="py-20 bg-[oklch(0.96_0.012_80)]">
+      <section className="py-20 bg-[oklch(0.88_0.025_66/0.84)]">
         <div className="container">
           <div className="text-center mb-14">
             <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-[oklch(0.62_0.12_70)] mb-3">What We Stand For</p>
@@ -129,7 +129,7 @@ export default function About() {
             </div>
 
             {/* Contact form */}
-            <div className="bg-[oklch(0.96_0.012_80)] p-8 border border-[oklch(0.88_0.015_75)]">
+            <div className="bg-[oklch(0.88_0.025_66/0.84)] p-8 border border-[oklch(0.88_0.015_75)]">
               <h3 className="font-serif text-2xl font-medium text-[oklch(0.18_0.015_60)] mb-6">Send a Message</h3>
               <form
                 onSubmit={(e) => {

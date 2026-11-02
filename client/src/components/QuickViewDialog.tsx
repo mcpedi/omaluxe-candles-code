@@ -71,9 +71,9 @@ export default function QuickViewDialog({ product, open, onOpenChange }: QuickVi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[oklch(0.98_0.006_80)] border-[oklch(0.88_0.015_75)] p-0 overflow-hidden sm:max-w-3xl ease-out duration-300 data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-bottom-2 data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:slide-out-to-bottom-2 data-[state=closed]:duration-200">
+      <DialogContent className="bg-[oklch(0.91_0.018_72/0.96)] border-[oklch(0.88_0.015_75)] p-0 overflow-hidden sm:max-w-3xl ease-out duration-300 data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-bottom-2 data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:slide-out-to-bottom-2 data-[state=closed]:duration-200">
         <div className="grid grid-cols-1 sm:grid-cols-2 max-h-[90vh] overflow-y-auto">
-          <div className="relative aspect-[4/5] sm:aspect-auto min-h-72 bg-[oklch(0.94_0.012_80)]">
+          <div className="relative aspect-[4/5] sm:aspect-auto min-h-72 bg-[oklch(0.85_0.025_66/0.86)]">
             {product.imageUrl ? (
               <img src={product.imageUrl} alt={product.name} className="absolute inset-0 w-full h-full object-cover" />
             ) : (
@@ -108,7 +108,7 @@ export default function QuickViewDialog({ product, open, onOpenChange }: QuickVi
             </p>
 
             {product.scentNotes && (
-              <div className="p-4 mb-4 bg-[oklch(0.94_0.012_80)] border-l-2 border-[oklch(0.72_0.12_75)]">
+              <div className="p-4 mb-4 bg-[oklch(0.85_0.025_66/0.86)] border-l-2 border-[oklch(0.72_0.12_75)]">
                 <p className="font-sans text-[10px] tracking-[0.2em] uppercase text-[oklch(0.62_0.12_70)] mb-1">Scent Notes</p>
                 <p className="font-sans text-xs leading-relaxed text-[oklch(0.38_0.04_60)]">{product.scentNotes}</p>
               </div>

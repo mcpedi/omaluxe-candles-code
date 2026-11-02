@@ -88,7 +88,7 @@ export default function Login() {
   };
 
   return (
-    <section className="min-h-[70vh] pt-28 pb-16 bg-[oklch(0.98_0.008_85)]">
+    <section className="min-h-[70vh] pt-28 pb-16 bg-[oklch(0.88_0.025_66/0.84)]">
       <div className="container max-w-xl">
         <Link href="/">
           <span className="inline-flex items-center gap-2 font-sans text-xs tracking-[0.12em] uppercase text-[oklch(0.52_0.02_60)] hover:text-[oklch(0.38_0.07_55)] cursor-pointer mb-8">

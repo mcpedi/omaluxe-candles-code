@@ -43,7 +43,7 @@ export default function Account() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
           {/* Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-[oklch(0.96_0.012_80)] border border-[oklch(0.88_0.015_75)] p-6">
+            <div className="bg-[oklch(0.88_0.025_66/0.84)] border border-[oklch(0.88_0.015_75)] p-6">
               <div className="w-14 h-14 rounded-full bg-[oklch(0.72_0.12_75/0.15)] flex items-center justify-center mb-4">
                 <span className="font-serif text-xl text-[oklch(0.62_0.12_70)]">
                   {user?.name?.charAt(0).toUpperCase() ?? "U"}
@@ -83,7 +83,7 @@ export default function Account() {
                 {orders.map((order) => (
                   <div key={order.id} className="bg-white border border-[oklch(0.88_0.015_75)] overflow-hidden">
                     <div
-                      className="flex items-center justify-between p-5 cursor-pointer hover:bg-[oklch(0.98_0.005_80)] transition-colors"
+                      className="flex items-center justify-between p-5 cursor-pointer hover:bg-[oklch(0.92_0.018_72/0.96)] transition-colors"
                       onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
                     >
                       <div className="flex items-center gap-4">
@@ -117,7 +117,7 @@ export default function Account() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-16 border border-[oklch(0.88_0.015_75)] bg-[oklch(0.96_0.012_80)]">
+              <div className="text-center py-16 border border-[oklch(0.88_0.015_75)] bg-[oklch(0.88_0.025_66/0.84)]">
                 <Package size={48} strokeWidth={0.8} className="mx-auto mb-4 text-[oklch(0.72_0.12_75/0.4)]" />
                 <p className="font-serif text-2xl font-light text-[oklch(0.52_0.02_60)] mb-2">No orders yet</p>
                 <p className="font-sans text-sm text-[oklch(0.62_0.02_60)] mb-6">Start your OmaLuxe journey today</p>

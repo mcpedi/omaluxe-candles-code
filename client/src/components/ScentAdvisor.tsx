@@ -131,7 +131,7 @@ export default function ScentAdvisor() {
                   className={`max-w-[80%] px-4 py-3 text-sm leading-relaxed ${
                     msg.role === "user"
                       ? "bg-[oklch(0.38_0.07_55)] text-white font-sans"
-                      : "bg-[oklch(0.96_0.012_80)] text-[oklch(0.18_0.015_60)]"
+                      : "bg-[oklch(0.88_0.025_66/0.84)] text-[oklch(0.18_0.015_60)]"
                   }`}
                 >
                   {msg.role === "assistant" ? (
@@ -158,7 +158,7 @@ export default function ScentAdvisor() {
                 <div className="w-6 h-6 rounded-full bg-[oklch(0.72_0.12_75/0.15)] flex items-center justify-center shrink-0 mr-2 mt-1">
                   <Sparkles size={11} strokeWidth={1.5} className="text-[oklch(0.62_0.12_70)]" />
                 </div>
-                <div className="bg-[oklch(0.96_0.012_80)] px-4 py-3 flex items-center gap-1">
+                <div className="bg-[oklch(0.88_0.025_66/0.84)] px-4 py-3 flex items-center gap-1">
                   {[0, 1, 2].map((i) => (
                     <div
                       key={i}

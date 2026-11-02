@@ -40,7 +40,7 @@ export default function OrderConfirmation() {
         </div>
 
         {order && (
-          <div className="bg-[oklch(0.96_0.012_80)] border border-[oklch(0.88_0.015_75)] p-8 mb-8">
+          <div className="bg-[oklch(0.88_0.025_66/0.84)] border border-[oklch(0.88_0.015_75)] p-8 mb-8">
             {/* Customer info */}
             <div className="mb-6 pb-6 border-b border-[oklch(0.88_0.015_75)]">
               <h2 className="font-serif text-lg font-medium text-[oklch(0.18_0.015_60)] mb-4">Delivery Details</h2>

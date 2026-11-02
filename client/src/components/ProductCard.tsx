@@ -51,7 +51,7 @@ export default function ProductCard({
     <div className="group card-hover bg-white border border-[oklch(0.88_0.015_75)] overflow-hidden">
       {/* Image */}
       <Link href={`/product/${slug}`}>
-        <div className="relative overflow-hidden aspect-[3/4] bg-[oklch(0.96_0.008_80)] cursor-pointer">
+        <div className="relative overflow-hidden aspect-[3/4] bg-[oklch(0.88_0.025_66/0.84)] cursor-pointer">
           {imageUrl ? (
             <img
               src={imageUrl}

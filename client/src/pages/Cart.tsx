@@ -74,7 +74,7 @@ export default function Cart() {
             {cartItems.map((item) => (
               <div key={item.id} className="flex gap-5 py-6">
                 {/* Image */}
-                <div className="w-24 h-28 bg-[oklch(0.96_0.012_80)] shrink-0 overflow-hidden">
+                <div className="w-24 h-28 bg-[oklch(0.88_0.025_66/0.84)] shrink-0 overflow-hidden">
                   {item.product?.imageUrl ? (
                     <img
                       src={item.product.imageUrl}
@@ -111,7 +111,7 @@ export default function Cart() {
                     <div className="flex items-center border border-[oklch(0.88_0.015_75)]">
                       <button
                         onClick={() => updateItem.mutate({ id: item.id, quantity: Math.max(1, item.quantity - 1) })}
-                        className="w-8 h-8 flex items-center justify-center text-[oklch(0.52_0.02_60)] hover:bg-[oklch(0.94_0.012_80)] transition-colors"
+                        className="w-8 h-8 flex items-center justify-center text-[oklch(0.52_0.02_60)] hover:bg-[oklch(0.85_0.025_66/0.86)] transition-colors"
                       >
                         <Minus size={12} />
                       </button>
@@ -120,7 +120,7 @@ export default function Cart() {
                       </span>
                       <button
                         onClick={() => updateItem.mutate({ id: item.id, quantity: item.quantity + 1 })}
-                        className="w-8 h-8 flex items-center justify-center text-[oklch(0.52_0.02_60)] hover:bg-[oklch(0.94_0.012_80)] transition-colors"
+                        className="w-8 h-8 flex items-center justify-center text-[oklch(0.52_0.02_60)] hover:bg-[oklch(0.85_0.025_66/0.86)] transition-colors"
                       >
                         <Plus size={12} />
                       </button>
@@ -139,7 +139,7 @@ export default function Cart() {
 
           {/* Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-[oklch(0.96_0.012_80)] border border-[oklch(0.88_0.015_75)] p-6 sticky top-24">
+            <div className="bg-[oklch(0.88_0.025_66/0.84)] border border-[oklch(0.88_0.015_75)] p-6 sticky top-24">
               <h2 className="font-serif text-xl font-medium text-[oklch(0.18_0.015_60)] mb-6">Order Summary</h2>
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between font-sans text-sm text-[oklch(0.38_0.04_60)]">

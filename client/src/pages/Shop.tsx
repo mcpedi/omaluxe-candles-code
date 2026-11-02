@@ -36,7 +36,7 @@ export default function Shop() {
   return (
     <div className="min-h-screen pt-20">
       {/* Header */}
-      <div className="bg-[oklch(0.96_0.012_80)] py-16 border-b border-[oklch(0.88_0.015_75)]">
+      <div className="bg-[oklch(0.88_0.025_66/0.84)] py-16 border-b border-[oklch(0.88_0.015_75)]">
         <div className="container text-center">
           <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-[oklch(0.62_0.12_70)] mb-3">Discover</p>
           <h1 className="font-serif text-5xl font-light text-[oklch(0.18_0.015_60)]">Our Collection</h1>

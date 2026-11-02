@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-const surface = "bg-[oklch(0.94_0.012_80)]";
+const surface = "bg-[oklch(0.85_0.025_66/0.86)]";
 
 export function PageSpinner({ label = "Loading" }: { label?: string }) {
   return (
@@ -104,7 +104,7 @@ export function OrderListSkeleton() {
 export function AdminTableSkeleton({ columns = 6 }: { columns?: number }) {
   return (
     <div className="bg-white border border-[oklch(0.88_0.015_75)] overflow-hidden" role="status" aria-label="Loading table">
-      <div className="h-11 bg-[oklch(0.96_0.012_80)] border-b border-[oklch(0.88_0.015_75)]" />
+      <div className="h-11 bg-[oklch(0.88_0.025_66/0.84)] border-b border-[oklch(0.88_0.015_75)]" />
       <div className="divide-y divide-[oklch(0.88_0.015_75)]">
         {Array.from({ length: 6 }).map((_, row) => (
           <div key={row} className="grid gap-4 px-4 py-4" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>

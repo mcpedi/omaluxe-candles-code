@@ -67,7 +67,7 @@ export default function Admin() {
   };
 
   return (
-    <div className="min-h-screen pt-20 bg-[oklch(0.97_0.006_80)]">
+    <div className="min-h-screen pt-20 bg-[oklch(0.89_0.02_68/0.86)]">
       <div className="container py-10">
         {/* Header */}
         <div className="mb-8">
@@ -134,7 +134,7 @@ export default function Admin() {
               <div className="bg-white border border-[oklch(0.88_0.015_75)] overflow-hidden">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-[oklch(0.88_0.015_75)] bg-[oklch(0.96_0.012_80)]">
+                    <tr className="border-b border-[oklch(0.88_0.015_75)] bg-[oklch(0.88_0.025_66/0.84)]">
                       {["Product", "Price", "Stock", "Featured", "Bestseller", "Actions"].map((h) => (
                         <th key={h} className="text-left px-4 py-3 font-sans text-[10px] tracking-[0.15em] uppercase text-[oklch(0.52_0.02_60)]">{h}</th>
                       ))}
@@ -142,7 +142,7 @@ export default function Admin() {
                   </thead>
                   <tbody className="divide-y divide-[oklch(0.88_0.015_75)]">
                     {products?.map((p) => (
-                      <tr key={p.id} className="hover:bg-[oklch(0.98_0.005_80)] transition-colors">
+                      <tr key={p.id} className="hover:bg-[oklch(0.92_0.018_72/0.96)] transition-colors">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             {p.imageUrl && (
@@ -221,7 +221,7 @@ export default function Admin() {
                   <div className="bg-white border border-[oklch(0.88_0.015_75)] overflow-hidden">
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b border-[oklch(0.88_0.015_75)] bg-[oklch(0.96_0.012_80)]">
+                        <tr className="border-b border-[oklch(0.88_0.015_75)] bg-[oklch(0.88_0.025_66/0.84)]">
                           {["Order ID", "Customer", "Total", "Status", "Date"].map((h) => (
                             <th key={h} className="text-left px-4 py-3 font-sans text-[10px] tracking-[0.15em] uppercase text-[oklch(0.52_0.02_60)]">{h}</th>
                           ))}
@@ -232,7 +232,7 @@ export default function Admin() {
                           <tr
                             key={o.id}
                             onClick={() => setSelectedOrder(o.id)}
-                            className="hover:bg-[oklch(0.98_0.005_80)] cursor-pointer transition-colors"
+                            className="hover:bg-[oklch(0.92_0.018_72/0.96)] cursor-pointer transition-colors"
                           >
                             <td className="px-4 py-3 font-sans text-sm font-medium text-[oklch(0.38_0.07_55)]">#{o.id}</td>
                             <td className="px-4 py-3 font-sans text-sm text-[oklch(0.18_0.015_60)]">{o.customerName}</td>
@@ -437,7 +437,7 @@ function ProductFormModal({ product, onClose }: { product: any; onClose: () => v
           <div className="flex gap-4 pt-6 border-t border-[oklch(0.88_0.015_75)]">
             <button
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-[oklch(0.88_0.015_75)] rounded font-sans text-sm text-[oklch(0.52_0.02_60)] hover:bg-[oklch(0.96_0.012_80)]"
+              className="flex-1 px-4 py-2 border border-[oklch(0.88_0.015_75)] rounded font-sans text-sm text-[oklch(0.52_0.02_60)] hover:bg-[oklch(0.88_0.025_66/0.84)]"
             >
               Cancel
             </button>

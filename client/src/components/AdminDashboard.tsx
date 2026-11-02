@@ -217,7 +217,7 @@ export default function AdminDashboard() {
           </div>
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[oklch(0.88_0.015_75)] bg-[oklch(0.96_0.012_80)]">
+              <tr className="border-b border-[oklch(0.88_0.015_75)] bg-[oklch(0.88_0.025_66/0.84)]">
                 {["Product", "Sold", "Revenue"].map((h) => (
                   <th
                     key={h}
@@ -230,7 +230,7 @@ export default function AdminDashboard() {
             </thead>
             <tbody className="divide-y divide-[oklch(0.88_0.015_75)]">
               {topProducts?.map((p) => (
-                <tr key={p.productId} className="hover:bg-[oklch(0.98_0.005_80)]">
+                <tr key={p.productId} className="hover:bg-[oklch(0.92_0.018_72/0.96)]">
                   <td className="px-4 py-3 font-sans text-sm text-[oklch(0.18_0.015_60)]">
                     {p.productName}
                   </td>
@@ -266,7 +266,7 @@ export default function AdminDashboard() {
           <div className="bg-white border border-[oklch(0.88_0.015_75)] overflow-hidden">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[oklch(0.88_0.015_75)] bg-[oklch(0.96_0.012_80)]">
+                <tr className="border-b border-[oklch(0.88_0.015_75)] bg-[oklch(0.88_0.025_66/0.84)]">
                   {["Product", "Stock", "Price", "Status"].map((h) => (
                     <th
                       key={h}
@@ -281,7 +281,7 @@ export default function AdminDashboard() {
                 {inventory?.map((item) => (
                   <tr
                     key={item.id}
-                    className="hover:bg-[oklch(0.98_0.005_80)] transition-colors"
+                    className="hover:bg-[oklch(0.92_0.018_72/0.96)] transition-colors"
                   >
                     <td className="px-4 py-3 font-sans text-sm text-[oklch(0.18_0.015_60)]">
                       {item.name}
@@ -323,7 +323,7 @@ export default function AdminDashboard() {
           </div>
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[oklch(0.88_0.015_75)] bg-[oklch(0.96_0.012_80)]">
+              <tr className="border-b border-[oklch(0.88_0.015_75)] bg-[oklch(0.88_0.025_66/0.84)]">
                 {["Name", "Email", "Orders", "Joined"].map((h) => (
                   <th
                     key={h}
@@ -336,7 +336,7 @@ export default function AdminDashboard() {
             </thead>
             <tbody className="divide-y divide-[oklch(0.88_0.015_75)]">
               {customers?.map((c) => (
-                <tr key={c.id} className="hover:bg-[oklch(0.98_0.005_80)]">
+                <tr key={c.id} className="hover:bg-[oklch(0.92_0.018_72/0.96)]">
                   <td className="px-4 py-3 font-sans text-sm text-[oklch(0.18_0.015_60)]">
                     {c.name}
                   </td>
@@ -436,7 +436,7 @@ export default function AdminDashboard() {
           <div className="bg-white border border-[oklch(0.88_0.015_75)] overflow-hidden">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[oklch(0.88_0.015_75)] bg-[oklch(0.96_0.012_80)]">
+                <tr className="border-b border-[oklch(0.88_0.015_75)] bg-[oklch(0.88_0.025_66/0.84)]">
                   {["Code", "Discount", "Max Uses", "Used", "Active", "Actions"].map(
                     (h) => (
                       <th
@@ -451,7 +451,7 @@ export default function AdminDashboard() {
               </thead>
               <tbody className="divide-y divide-[oklch(0.88_0.015_75)]">
                 {coupons?.map((c) => (
-                  <tr key={c.id} className="hover:bg-[oklch(0.98_0.005_80)]">
+                  <tr key={c.id} className="hover:bg-[oklch(0.92_0.018_72/0.96)]">
                     <td className="px-4 py-3 font-sans text-sm font-medium text-[oklch(0.18_0.015_60)]">
                       {c.code}
                     </td>
@@ -505,7 +505,7 @@ export default function AdminDashboard() {
           </div>
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[oklch(0.88_0.015_75)] bg-[oklch(0.96_0.012_80)]">
+              <tr className="border-b border-[oklch(0.88_0.015_75)] bg-[oklch(0.88_0.025_66/0.84)]">
                 {["Order ID", "Customer", "Total", "Status", "Date"].map((h) => (
                   <th
                     key={h}
@@ -518,7 +518,7 @@ export default function AdminDashboard() {
             </thead>
             <tbody className="divide-y divide-[oklch(0.88_0.015_75)]">
               {orders?.map((o) => (
-                <tr key={o.id} className="hover:bg-[oklch(0.98_0.005_80)]">
+                <tr key={o.id} className="hover:bg-[oklch(0.92_0.018_72/0.96)]">
                   <td className="px-4 py-3 font-sans text-sm font-medium text-[oklch(0.38_0.07_55)]">
                     #{o.id}
                   </td>
