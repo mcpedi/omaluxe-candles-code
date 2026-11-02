@@ -1,7 +1,6 @@
-import { AXIOS_TIMEOUT_MS, COOKIE_NAME, ONE_YEAR_MS } from "../../shared/const";
+import { AXIOS_TIMEOUT_MS, ONE_YEAR_MS } from "../../shared/const";
 import { ForbiddenError } from "../../shared/_core/errors";
 import axios, { type AxiosInstance } from "axios";
-import { parse as parseCookieHeader } from "cookie";
 import type { Request } from "express";
 import { SignJWT, jwtVerify } from "jose";
 import type { User } from "../../drizzle/schema";
@@ -145,15 +144,6 @@ class SDKServer {
     } as GetUserInfoResponse;
   }
 
-  private parseCookies(cookieHeader: string | undefined) {
-    if (!cookieHeader) {
-      return new Map<string, string>();
-    }
-
-    const parsed = parseCookieHeader(cookieHeader);
-    return new Map(Object.entries(parsed));
-  }
-
   private getSessionSecret() {
     const secret = ENV.cookieSecret;
     return new TextEncoder().encode(secret);
@@ -257,46 +247,88 @@ class SDKServer {
   }
 
   async authenticateRequest(req: Request): Promise<User> {
-    // Regular authentication flow
-    const cookies = this.parseCookies(req.headers.cookie);
-    const sessionCookie = cookies.get(COOKIE_NAME);
-    const session = await this.verifySession(sessionCookie);
-
-    if (!session) {
-      throw ForbiddenError("Invalid session cookie");
+    const authorization = req.headers.authorization ?? "";
+    const token = /^Bearer\s+(.+)$/i.exec(authorization)?.[1];
+    if (!token) throw ForbiddenError("Supabase access token is required");
+    if (!ENV.supabaseUrl || !ENV.supabasePublishableKey) {
+      throw ForbiddenError("Supabase authentication is not configured");
     }
 
-    const sessionUserId = session.openId;
-    const signedInAt = new Date();
-    let user = await db.getUserByOpenId(sessionUserId);
+    let response: Response;
+    try {
+      response = await fetch(
+        `${ENV.supabaseUrl.replace(/\/+$/, "")}/auth/v1/user`,
+        {
+          headers: {
+            apikey: ENV.supabasePublishableKey,
+            Authorization: `Bearer ${token}`,
+          },
+          signal: AbortSignal.timeout(10_000),
+        },
+      );
+    } catch (error) {
+      console.error(
+        "[Auth] Supabase verification request failed:",
+        error instanceof Error ? error.name : "unknown error",
+      );
+      throw ForbiddenError("Supabase session verification failed");
+    }
+    if (!response.ok) throw ForbiddenError("Invalid Supabase access token");
 
-    // If user not in DB, sync from OAuth server automatically
+    const identity = await response.json() as {
+      id?: unknown;
+      email?: unknown;
+      email_confirmed_at?: unknown;
+      user_metadata?: Record<string, unknown> | null;
+    };
+    if (typeof identity.id !== "string" || !identity.id) {
+      throw ForbiddenError("Supabase user identity is missing");
+    }
+    const email = typeof identity.email === "string"
+      ? identity.email.trim().toLowerCase()
+      : "";
+    if (!email || !identity.email_confirmed_at) {
+      throw ForbiddenError("Please confirm your email address before signing in");
+    }
+
+    const metadata = identity.user_metadata ?? {};
+    const name = typeof metadata.full_name === "string"
+      ? metadata.full_name.trim()
+      : typeof metadata.name === "string"
+        ? metadata.name.trim()
+        : null;
+    const signedInAt = new Date();
+    let user = await db.getUserByOpenId(identity.id);
+
     if (!user) {
-      try {
-        const userInfo = await this.getUserInfoWithJwt(sessionCookie ?? "");
-        await db.upsertUser({
-          openId: userInfo.openId,
-          name: userInfo.name || null,
-          email: userInfo.email ?? null,
-          loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
-          lastSignedIn: signedInAt,
-        });
-        user = await db.getUserByOpenId(userInfo.openId);
-      } catch (error) {
-        console.error("[Auth] Failed to sync user from OAuth:", error);
-        throw ForbiddenError("Failed to sync user info");
+      const emailMatches = await db.getUsersByEmail(email);
+      if (emailMatches.length > 1) {
+        throw ForbiddenError("This email matches multiple existing profiles; account linking needs support");
+      }
+      if (emailMatches.length === 1) {
+        const existingUser = emailMatches[0];
+        if (existingUser.loginMethod?.toLowerCase() === "supabase") {
+          throw ForbiddenError("This email is already linked to a different Supabase account");
+        }
+        await db.relinkUserToSupabase(
+          existingUser.id,
+          identity.id,
+          email,
+          name || existingUser.name,
+        );
       }
     }
 
-    if (!user) {
-      throw ForbiddenError("User not found");
-    }
-
+    user = await db.getUserByOpenId(identity.id);
     await db.upsertUser({
-      openId: user.openId,
+      openId: identity.id,
+      name: name || user?.name || null,
+      email,
+      loginMethod: "supabase",
       lastSignedIn: signedInAt,
     });
-
+    user = await db.getUserByOpenId(identity.id);
+    if (!user) throw ForbiddenError("Unable to synchronize the Supabase user profile");
     return user;
   }
 }

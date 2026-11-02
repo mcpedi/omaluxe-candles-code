@@ -19,6 +19,7 @@ import Account from "./pages/Account";
 import Admin from "./pages/Admin";
 import NotificationPreferences from "./pages/NotificationPreferences";
 import Wishlist from "./pages/Wishlist";
+import Login from "./pages/Login";
 import WhatsAppButton from "./components/WhatsAppButton";
 
 function Router() {
@@ -36,6 +37,7 @@ function Router() {
       <Route path="/wishlist" component={Wishlist} />
       <Route path="/admin" component={Admin} />
       <Route path="/account/notifications" component={NotificationPreferences} />
+      <Route path="/login" component={Login} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

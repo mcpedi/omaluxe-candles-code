@@ -69,6 +69,37 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function getUsersByEmail(email: string) {
+  const db = await getDb();
+  if (!db) return [];
+  const normalizedEmail = email.trim().toLowerCase();
+  if (!normalizedEmail) return [];
+  return db
+    .select()
+    .from(users)
+    .where(sql`lower(${users.email}) = ${normalizedEmail}`)
+    .limit(2);
+}
+
+export async function relinkUserToSupabase(
+  userId: number,
+  openId: string,
+  email: string,
+  name?: string | null,
+) {
+  const db = await getDb();
+  if (!db) return;
+  const values: Partial<InsertUser> = {
+    openId,
+    email,
+    loginMethod: "supabase",
+    lastSignedIn: new Date(),
+    updatedAt: new Date(),
+  };
+  if (name?.trim()) values.name = name.trim();
+  await db.update(users).set(values).where(eq(users.id, userId));
+}
+
 // ── Products ──────────────────────────────────────────────────────────────────
 export async function getAllProducts() {
   const db = await getDb();
