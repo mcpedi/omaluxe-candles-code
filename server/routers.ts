@@ -3,7 +3,7 @@ import { z } from "zod";
 import { COOKIE_NAME } from "../shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { notifyOwner } from "./_core/notification";
 import { invokeLLM } from "./_core/llm";
 import { storagePut } from "./storage";
@@ -67,14 +67,7 @@ import { inArray } from "drizzle-orm";
 import { notifications, users } from "../drizzle/schema";
 import type { InsertNotification } from "../drizzle/schema";
 import { getDb } from "./db";
-
-// Admin guard middleware
-const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.user.role !== "admin") {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
-  }
-  return next({ ctx });
-});
+import { ENV } from "./_core/env";
 
 export const appRouter = router({
   system: systemRouter,
@@ -332,7 +325,12 @@ export const appRouter = router({
     detail: protectedProcedure.input(z.object({ id: z.number() })).query(async ({ ctx, input }) => {
       const result = await getOrderWithItems(input.id);
       if (!result) throw new TRPCError({ code: "NOT_FOUND" });
-      if (result.order.userId !== ctx.user.id && ctx.user.role !== "admin") {
+      const isConfiguredOwner = Boolean(
+        ctx.user.role === "admin" &&
+        ctx.user.email &&
+        ENV.ownerEmails.includes(ctx.user.email.trim().toLowerCase())
+      );
+      if (result.order.userId !== ctx.user.id && !isConfiguredOwner) {
         throw new TRPCError({ code: "FORBIDDEN" });
       }
       return result;

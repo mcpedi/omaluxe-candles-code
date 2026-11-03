@@ -4,7 +4,12 @@ export const ENV = {
   databaseUrl: process.env.DATABASE_URL ?? "",
   oAuthServerUrl: process.env.OAUTH_SERVER_URL ?? "",
   ownerOpenId: process.env.OWNER_OPEN_ID ?? "",
-  ownerEmail: (process.env.OWNER_EMAIL ?? "").trim().toLowerCase(),
+  ownerEmails: Array.from(new Set(
+    [process.env.OWNER_EMAILS, process.env.OWNER_EMAIL]
+      .flatMap((value) => (value ?? "").split(","))
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean)
+  )),
   supabaseUrl: process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? "",
   supabasePublishableKey:
     process.env.SUPABASE_PUBLISHABLE_KEY ??

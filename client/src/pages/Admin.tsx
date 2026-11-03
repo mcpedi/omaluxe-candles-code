@@ -2,16 +2,18 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { useState } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
-import { Plus, Edit2, Trash2, Package, ShoppingBag, Eye } from "lucide-react";
+import { Plus, Edit2, Trash2, Package, ShoppingBag, Eye, ShieldCheck, Sparkles } from "lucide-react";
 import ImageUploadField from "@/components/ImageUploadField";
 import AdminDashboard from "@/components/AdminDashboard";
 import { trpc } from "@/lib/trpc";
 import { AdminTableSkeleton, PageSpinner } from "@/components/LoadingSkeletons";
 
 type AdminTab = "products" | "orders" | "dashboard";
+const ADMIN_EMAILS = new Set(["jackobuny05@gmail.com", "omaluxescentskenya@gmail.com"]);
 
 export default function Admin() {
   const { user, isAuthenticated, loading } = useAuth();
+  const isOwner = user?.role === "admin" && ADMIN_EMAILS.has(user.email?.trim().toLowerCase() ?? "");
   const [tab, setTab] = useState<AdminTab>("dashboard");
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
@@ -20,7 +22,7 @@ export default function Admin() {
   const utils = trpc.useUtils();
   const { data: products, isLoading: productsLoading } = trpc.products.list.useQuery();
   const { data: orders, isLoading: ordersLoading } = trpc.admin.allOrders.useQuery(undefined, {
-    enabled: isAuthenticated && user?.role === "admin",
+    enabled: isAuthenticated && isOwner,
   });
   const { data: orderDetail } = trpc.admin.orderDetail.useQuery(
     { id: selectedOrder! },
@@ -46,7 +48,7 @@ export default function Admin() {
     return <PageSpinner label="Checking admin access" />;
   }
 
-  if (!isAuthenticated || user?.role !== "admin") {
+  if (!isAuthenticated || !isOwner) {
     return (
       <div className="min-h-screen pt-20 flex items-center justify-center">
         <div className="text-center">
@@ -71,8 +73,27 @@ export default function Admin() {
       <div className="container py-10">
         {/* Header */}
         <div className="mb-8">
-          <p className="font-sans text-[10px] tracking-[0.25em] uppercase text-[oklch(0.62_0.12_70)] mb-1">Management</p>
-          <h1 className="font-serif text-3xl font-light text-[oklch(0.18_0.015_60)]">Admin Panel</h1>
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div>
+              <p className="font-sans text-[10px] tracking-[0.25em] uppercase text-[oklch(0.62_0.12_70)] mb-1">Private management</p>
+              <h1 className="font-serif text-3xl font-light text-[oklch(0.18_0.015_60)]">OmaLuxe Owner Studio</h1>
+              <p className="font-sans text-sm text-[oklch(0.52_0.02_60)] mt-2">A considered workspace for your candle house.</p>
+            </div>
+            <div className="inline-flex items-center gap-2 self-start sm:self-auto border border-[oklch(0.72_0.12_75/0.4)] bg-white/80 px-3 py-2">
+              <ShieldCheck size={15} className="text-[oklch(0.38_0.07_55)]" aria-hidden="true" />
+              <span className="font-sans text-xs text-[oklch(0.38_0.07_55)]">Owner access · {user.email}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-8 flex items-center gap-4 border border-[oklch(0.72_0.12_75/0.4)] bg-[oklch(0.38_0.07_55)] px-6 py-5 text-white">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center border border-white/25 bg-white/10">
+            <Sparkles size={19} aria-hidden="true" />
+          </div>
+          <div>
+            <p className="font-serif text-xl">The OmaLuxe Edit</p>
+            <p className="font-sans text-xs text-white/75">Private brand and store operations, reserved for the owner.</p>
+          </div>
         </div>
 
         {/* Quick Stats */}
