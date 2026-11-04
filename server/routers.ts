@@ -269,7 +269,7 @@ export const appRouter = router({
 
   // ── Orders ──────────────────────────────────────────────────────────────────
   orders: router({
-    place: protectedProcedure
+    place: publicProcedure
       .input(
         z.object({
           customerName: z.string().min(1),
@@ -298,12 +298,12 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const { items, ...orderData } = input;
         const orderId = await createOrder(
-          { ...orderData, userId: ctx.user.id, shipping: orderData.shipping ?? "0" },
+          { ...orderData, userId: ctx.user?.id ?? null, shipping: orderData.shipping ?? "0" },
           items.map((i) => ({ ...i, orderId: 0, selectedSize: i.selectedSize ?? null }))
         );
 
         // Clear cart after successful order
-        await clearCart(ctx.user.id);
+        if (ctx.user) await clearCart(ctx.user.id);
 
         // Notify owner
         const itemsList = items
@@ -316,13 +316,15 @@ export const appRouter = router({
         });
 
         // Create in-app notification for customer
-        await createNotification({
-          userId: ctx.user.id,
-          type: "order_placed",
-          title: `Order #${orderId} Confirmed!`,
-          message: `Thank you, ${input.customerName}! Your order of ${items.length} item${items.length > 1 ? "s" : ""} totalling $${input.total} has been placed successfully. We'll begin preparing your candles right away.`,
-          orderId,
-        });
+        if (ctx.user) {
+          await createNotification({
+            userId: ctx.user.id,
+            type: "order_placed",
+            title: `Order #${orderId} Confirmed!`,
+            message: `Thank you, ${input.customerName}! Your order of ${items.length} item${items.length > 1 ? "s" : ""} totalling $${input.total} has been placed successfully. We'll begin preparing your candles right away.`,
+            orderId,
+          });
+        }
 
         return { success: true, orderId };
       }),
@@ -380,13 +382,15 @@ export const appRouter = router({
             cancelled: "Order Cancelled",
             pending: "Order Pending",
           };
-          await createNotification({
-            userId: orderData.order.userId,
-            type: "order_updated",
-            title: statusLabels[input.status] ?? `Order #${input.id} Updated`,
-            message: statusMessages[input.status] ?? `Your order status has been updated to ${input.status}.`,
-            orderId: input.id,
-          });
+          if (orderData.order.userId !== null) {
+            await createNotification({
+              userId: orderData.order.userId,
+              type: "order_updated",
+              title: statusLabels[input.status] ?? `Order #${input.id} Updated`,
+              message: statusMessages[input.status] ?? `Your order status has been updated to ${input.status}.`,
+              orderId: input.id,
+            });
+          }
         }
         return { success: true };
       }),

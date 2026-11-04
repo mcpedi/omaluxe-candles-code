@@ -1,6 +1,6 @@
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
+import { addGuestCartItem } from "@/lib/guestCart";
 import { useState } from "react";
 import { useParams, Link } from "wouter";
 import { Minus, Plus, ShoppingBag, Clock, Leaf, ChevronLeft } from "lucide-react";
@@ -53,12 +53,20 @@ export default function ProductDetail() {
   const effectivePrice = selectedPrice ?? parseFloat(product.price);
 
   const handleAddToCart = () => {
-    if (!isAuthenticated) {
-      window.location.href = getLoginUrl();
-      return;
-    }
     if (sizes && sizes.length > 0 && !selectedSize) {
       toast.error("Please select a size");
+      return;
+    }
+    if (!isAuthenticated) {
+      addGuestCartItem({
+        productId: product.id,
+        productName: product.name,
+        imageUrl: product.imageUrl,
+        quantity,
+        selectedSize: selectedSize ?? undefined,
+        price: effectivePrice.toFixed(2),
+      });
+      toast.success("Added to cart", { description: `${product.name} has been added to your cart.` });
       return;
     }
     addToCart.mutate({

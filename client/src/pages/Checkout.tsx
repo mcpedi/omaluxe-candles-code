@@ -1,9 +1,9 @@
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
 import { useState } from "react";
 import { useLocation, Link } from "wouter";
 import { toast } from "sonner";
+import { clearGuestCart, getGuestCart, saveGuestOrder } from "@/lib/guestCart";
 
 export default function Checkout() {
   const { user, isAuthenticated } = useAuth();
@@ -20,29 +20,31 @@ export default function Checkout() {
     notes: "",
   });
 
-  const { data: cartItems, isLoading } = trpc.cart.get.useQuery(undefined, {
+  const { data: accountCartItems, isLoading } = trpc.cart.get.useQuery(undefined, {
     enabled: isAuthenticated,
   });
+  const guestCartItems = getGuestCart();
+  const cartItems = isAuthenticated ? accountCartItems ?? [] : guestCartItems.map((item) => ({
+    ...item,
+    product: { name: item.productName, imageUrl: item.imageUrl },
+  }));
 
   const placeOrder = trpc.orders.place.useMutation({
     onSuccess: (data) => {
+      if (!isAuthenticated) {
+        saveGuestOrder({
+          id: data.orderId,
+          order: { ...form, subtotal: subtotal.toFixed(2), shipping: shipping.toFixed(2), total: total.toFixed(2) },
+          items: cartItems,
+        });
+        clearGuestCart();
+      }
       navigate(`/order-confirmation/${data.orderId}`);
     },
     onError: (err) => toast.error(err.message || "Failed to place order"),
   });
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen pt-20 flex items-center justify-center">
-        <div className="text-center">
-          <p className="font-serif text-2xl text-[oklch(0.52_0.02_60)] mb-4">Please sign in to checkout</p>
-          <a href={getLoginUrl()} className="btn-luxury">Sign In</a>
-        </div>
-      </div>
-    );
-  }
-
-  if (isLoading) {
+  if (isAuthenticated && isLoading) {
     return (
       <div className="min-h-screen pt-20 flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[oklch(0.72_0.12_75)] border-t-transparent rounded-full animate-spin" />

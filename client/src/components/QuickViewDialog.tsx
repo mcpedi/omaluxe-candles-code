@@ -4,7 +4,7 @@ import { Link } from "wouter";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
+import { addGuestCartItem } from "@/lib/guestCart";
 import { getQuickViewPrice, needsQuickViewSizeSelection } from "@/lib/quickView";
 import WishlistButton from "./WishlistButton";
 import {
@@ -53,12 +53,21 @@ export default function QuickViewDialog({ product, open, onOpenChange }: QuickVi
   });
 
   const handleAddToCart = () => {
-    if (!isAuthenticated) {
-      window.location.href = getLoginUrl();
-      return;
-    }
     if (needsQuickViewSizeSelection(sizes, selectedSize)) {
       toast.error("Please select a size");
+      return;
+    }
+    if (!isAuthenticated) {
+      addGuestCartItem({
+        productId: product.id,
+        productName: product.name,
+        imageUrl: product.imageUrl,
+        quantity,
+        selectedSize: selectedSize ?? undefined,
+        price: effectivePrice.toFixed(2),
+      });
+      toast.success("Added to cart", { description: `${product.name} has been added to your cart.` });
+      onOpenChange(false);
       return;
     }
     addToCart.mutate({

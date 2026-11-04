@@ -5,6 +5,7 @@ import { trpc } from "@/lib/trpc";
 import { ShoppingBag, Menu, X, User, LogOut, Settings } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
+import { getGuestCart, guestCartChangedEvent } from "@/lib/guestCart";
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -12,12 +13,21 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [location] = useLocation();
+  const [guestCartCount, setGuestCartCount] = useState(0);
 
   const { data: cartItems } = trpc.cart.get.useQuery(undefined, {
     enabled: isAuthenticated,
   });
 
   const cartCount = cartItems?.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
+  useEffect(() => {
+    const updateGuestCount = () =>
+      setGuestCartCount(getGuestCart().reduce((sum, item) => sum + item.quantity, 0));
+    updateGuestCount();
+    window.addEventListener(guestCartChangedEvent(), updateGuestCount);
+    return () => window.removeEventListener(guestCartChangedEvent(), updateGuestCount);
+  }, []);
+  const displayedCartCount = isAuthenticated ? cartCount : guestCartCount;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -88,9 +98,9 @@ export default function Navbar() {
             <Link href="/cart">
               <button className={`relative p-2 transition-colors ${scrolled ? 'text-[oklch(0.38_0.04_60)] hover:text-[oklch(0.18_0.015_60)]' : 'text-white/80 hover:text-white'}`}>
                 <ShoppingBag size={20} strokeWidth={1.5} />
-                {cartCount > 0 && (
+                {displayedCartCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-[oklch(0.38_0.07_55)] text-white text-[9px] flex items-center justify-center font-sans font-medium">
-                    {cartCount}
+                    {displayedCartCount}
                   </span>
                 )}
               </button>

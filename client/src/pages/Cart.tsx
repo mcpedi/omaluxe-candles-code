@@ -1,14 +1,21 @@
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import { CartSkeleton } from "@/components/LoadingSkeletons";
+import {
+  getGuestCart,
+  guestCartChangedEvent,
+  removeGuestCartItem,
+  updateGuestCartItem,
+} from "@/lib/guestCart";
+import { useEffect, useState } from "react";
 
 export default function Cart() {
   const { isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
+  const [guestItems, setGuestItems] = useState(getGuestCart);
 
   const { data: cartItems, isLoading } = trpc.cart.get.useQuery(undefined, {
     enabled: isAuthenticated,
@@ -24,31 +31,30 @@ export default function Cart() {
     onError: () => toast.error("Failed to remove item"),
   });
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen pt-20 flex items-center justify-center">
-        <div className="text-center">
-          <ShoppingBag size={48} strokeWidth={1} className="mx-auto mb-4 text-[oklch(0.72_0.12_75)]" />
-          <h2 className="font-serif text-3xl font-light text-[oklch(0.18_0.015_60)] mb-3">Your Cart</h2>
-          <p className="font-sans text-sm text-[oklch(0.52_0.02_60)] mb-6">Please sign in to view your cart</p>
-          <a href={getLoginUrl()} className="btn-luxury">Sign In</a>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    const refresh = () => setGuestItems(getGuestCart());
+    window.addEventListener(guestCartChangedEvent(), refresh);
+    return () => window.removeEventListener(guestCartChangedEvent(), refresh);
+  }, []);
 
-  if (isLoading) {
+  if (isAuthenticated && isLoading) {
     return <CartSkeleton />;
   }
 
-  const subtotal = cartItems?.reduce(
+  const items = isAuthenticated
+    ? cartItems ?? []
+    : guestItems.map((item) => ({
+        ...item,
+        product: { name: item.productName, imageUrl: item.imageUrl },
+      }));
+  const subtotal = items.reduce(
     (sum, item) => sum + parseFloat(item.price) * item.quantity,
     0
   ) ?? 0;
   const shipping = subtotal > 100 ? 0 : 9.99;
   const total = subtotal + shipping;
 
-  if (!cartItems || cartItems.length === 0) {
+  if (items.length === 0) {
     return (
       <div className="min-h-screen pt-20 flex items-center justify-center">
         <div className="text-center">
@@ -71,7 +77,7 @@ export default function Cart() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Items */}
           <div className="lg:col-span-2 space-y-0 divide-y divide-[oklch(0.88_0.015_75)] border-t border-b border-[oklch(0.88_0.015_75)]">
-            {cartItems.map((item) => (
+            {items.map((item) => (
               <div key={item.id} className="flex gap-5 py-6">
                 {/* Image */}
                 <div className="w-24 h-28 bg-[oklch(0.88_0.025_66/0.84)] shrink-0 overflow-hidden">
@@ -110,7 +116,11 @@ export default function Cart() {
                   <div className="flex items-center gap-4 mt-4">
                     <div className="flex items-center border border-[oklch(0.88_0.015_75)]">
                       <button
-                        onClick={() => updateItem.mutate({ id: item.id, quantity: Math.max(1, item.quantity - 1) })}
+                        onClick={() =>
+                          isAuthenticated
+                            ? updateItem.mutate({ id: Number(item.id), quantity: Math.max(1, item.quantity - 1) })
+                            : updateGuestCartItem(String(item.id), Math.max(1, item.quantity - 1))
+                        }
                         className="w-8 h-8 flex items-center justify-center text-[oklch(0.52_0.02_60)] hover:bg-[oklch(0.85_0.025_66/0.86)] transition-colors"
                       >
                         <Minus size={12} />
@@ -119,14 +129,22 @@ export default function Cart() {
                         {item.quantity}
                       </span>
                       <button
-                        onClick={() => updateItem.mutate({ id: item.id, quantity: item.quantity + 1 })}
+                        onClick={() =>
+                          isAuthenticated
+                            ? updateItem.mutate({ id: Number(item.id), quantity: item.quantity + 1 })
+                            : updateGuestCartItem(String(item.id), item.quantity + 1)
+                        }
                         className="w-8 h-8 flex items-center justify-center text-[oklch(0.52_0.02_60)] hover:bg-[oklch(0.85_0.025_66/0.86)] transition-colors"
                       >
                         <Plus size={12} />
                       </button>
                     </div>
                     <button
-                      onClick={() => removeItem.mutate({ id: item.id })}
+                      onClick={() =>
+                        isAuthenticated
+                          ? removeItem.mutate({ id: Number(item.id) })
+                          : removeGuestCartItem(String(item.id))
+                      }
                       className="flex items-center gap-1 font-sans text-xs text-[oklch(0.52_0.02_60)] hover:text-red-500 transition-colors"
                     >
                       <Trash2 size={13} /> Remove

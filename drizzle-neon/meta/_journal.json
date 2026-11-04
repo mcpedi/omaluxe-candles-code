@@ -8,6 +8,13 @@
       "when": 1793475829661,
       "tag": "0000_stiff_hedge_knight",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793800000000,
+      "tag": "0001_guest_orders",
+      "breakpoints": true
     }
   ]
 }

@@ -80,7 +80,7 @@ export type CartItem = typeof cartItems.$inferSelect;
 
 export const orders = omaLuxeSchema.table("orders", {
   id: serial("id").primaryKey(),
-  userId: integer("userId").notNull(),
+  userId: integer("userId"),
   customerName: varchar("customerName", { length: 256 }).notNull(),
   customerEmail: varchar("customerEmail", { length: 320 }).notNull(),
   customerPhone: varchar("customerPhone", { length: 32 }),

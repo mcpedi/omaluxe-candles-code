@@ -489,6 +489,11 @@ export default function Login() {
             </Link>
             .
           </p>
+          <Link href="/shop">
+            <span className="mt-4 block text-center font-sans text-xs text-[oklch(0.38_0.07_55)] underline underline-offset-4 cursor-pointer">
+              Continue as guest and shop
+            </span>
+          </Link>
         </div>
       </div>
     </section>

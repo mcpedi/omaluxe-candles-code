@@ -1,14 +1,33 @@
 import { trpc } from "@/lib/trpc";
 import { useParams, Link } from "wouter";
 import { CheckCircle, Package, ArrowRight } from "lucide-react";
+import { getGuestOrder } from "@/lib/guestCart";
+import { useAuth } from "@/_core/hooks/useAuth";
+
+type GuestOrder = {
+  id: number;
+  order: {
+    customerName: string;
+    customerEmail: string;
+    shippingAddress: string;
+    city?: string;
+    country?: string;
+    subtotal: string;
+    shipping: string;
+    total: string;
+  };
+  items: Array<{ productName: string; selectedSize?: string; quantity: number; price: string }>;
+};
 
 export default function OrderConfirmation() {
   const params = useParams<{ id: string }>();
   const orderId = parseInt(params.id ?? "0");
+  const { isAuthenticated } = useAuth();
+  const guestOrder = getGuestOrder<GuestOrder>();
 
   const { data, isLoading } = trpc.orders.detail.useQuery(
     { id: orderId },
-    { enabled: !!orderId }
+    { enabled: !!orderId && isAuthenticated }
   );
 
   if (isLoading) {
@@ -19,8 +38,16 @@ export default function OrderConfirmation() {
     );
   }
 
-  const order = data?.order;
-  const items = data?.items ?? [];
+  const order = data?.order ?? (guestOrder?.id === orderId ? {
+    ...guestOrder.order,
+  } : undefined);
+  const items = data?.items ?? (guestOrder?.id === orderId ? guestOrder.items.map((item, index) => ({
+    id: index,
+    productName: item.productName,
+    selectedSize: item.selectedSize,
+    quantity: item.quantity,
+    subtotal: (Number(item.price) * item.quantity).toFixed(2),
+  })) : []);
 
   return (
     <div className="min-h-screen pt-20">
