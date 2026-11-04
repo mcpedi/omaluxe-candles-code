@@ -15,7 +15,7 @@ export default function Footer() {
               </p>
             </div>
             <p className="font-sans text-sm text-[oklch(0.65_0.01_75)] leading-relaxed max-w-xs">
-              Handcrafted luxury candles that transform your space into a sanctuary of warmth, elegance, and unforgettable fragrance.
+              Handcrafted luxury candles today, with a dedicated collection of standalone fragrances on the way.
             </p>
             <div className="flex items-center gap-4 mt-6">
               <a href="https://instagram.com" target="_blank" rel="noopener noreferrer"
@@ -34,7 +34,8 @@ export default function Footer() {
             <p className="font-sans text-[10px] tracking-[0.2em] uppercase text-[oklch(0.72_0.12_75)] mb-5 font-medium">Shop</p>
             <ul className="space-y-3">
               {[
-                { href: "/shop", label: "All Products" },
+                { href: "/shop", label: "Candles" },
+                { href: "/scents", label: "Scents" },
                 { href: "/collections", label: "Collections" },
                 { href: "/shop?filter=bestsellers", label: "Bestsellers" },
                 { href: "/shop?filter=featured", label: "New Arrivals" },

@@ -39,7 +39,7 @@ export default function Shop() {
       <div className="bg-[oklch(0.88_0.025_66/0.84)] py-16 border-b border-[oklch(0.88_0.015_75)]">
         <div className="container text-center">
           <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-[oklch(0.62_0.12_70)] mb-3">Discover</p>
-          <h1 className="font-serif text-5xl font-light text-[oklch(0.18_0.015_60)]">Our Collection</h1>
+          <h1 className="font-serif text-5xl font-light text-[oklch(0.18_0.015_60)]">Candles</h1>
           <div className="flex items-center justify-center gap-4 mt-4 mb-8">
             <div className="h-px w-16 bg-[oklch(0.72_0.12_75/0.4)]" />
             <div className="w-1.5 h-1.5 rounded-full bg-[oklch(0.72_0.12_75)]" />
@@ -78,7 +78,7 @@ export default function Shop() {
                   : "border-transparent text-[oklch(0.52_0.02_60)] hover:text-[oklch(0.18_0.015_60)]"
               }`}
             >
-              {f === "all" ? "All Products" : f === "featured" ? "New Arrivals" : "Bestsellers"}
+              {f === "all" ? "All Candles" : f === "featured" ? "New Arrivals" : "Bestsellers"}
             </button>
           ))}
           <div className="ml-auto font-sans text-xs text-[oklch(0.52_0.02_60)]">
@@ -105,7 +105,7 @@ export default function Shop() {
                   className="btn-luxury-outline min-w-44 flex items-center justify-center gap-2 disabled:opacity-60"
                 >
                   {isFetching && <Loader2 size={14} className="animate-spin" />}
-                  {isFetching ? "Loading products…" : "Load More Products"}
+                  {isFetching ? "Loading products…" : "Load More Candles"}
                 </button>
               </div>
             )}
@@ -117,7 +117,7 @@ export default function Shop() {
           </>
         ) : (
           <div className="text-center py-20">
-            <p className="font-serif text-2xl text-[oklch(0.52_0.02_60)] mb-2">No products found</p>
+            <p className="font-serif text-2xl text-[oklch(0.52_0.02_60)] mb-2">No candles found</p>
             <p className="font-sans text-sm text-[oklch(0.62_0.02_60)]">Try adjusting your search or filter</p>
           </div>
         )}

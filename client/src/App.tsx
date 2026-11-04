@@ -15,6 +15,7 @@ import Checkout from "./pages/Checkout";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import Collections from "./pages/Collections";
 import About from "./pages/About";
+import Scents from "./pages/Scents";
 import Account from "./pages/Account";
 import Admin from "./pages/Admin";
 import NotificationPreferences from "./pages/NotificationPreferences";
@@ -27,6 +28,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/shop" component={Shop} />
+      <Route path="/scents" component={Scents} />
       <Route path="/product/:slug" component={ProductDetail} />
       <Route path="/cart" component={Cart} />
       <Route path="/checkout" component={Checkout} />

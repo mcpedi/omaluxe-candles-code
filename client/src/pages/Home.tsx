@@ -56,12 +56,12 @@ export default function Home() {
             <div className="flex flex-wrap gap-4 animate-fade-in-up animate-delay-300">
               <Link href="/shop">
                 <button className="btn-luxury">
-                  Explore Collection
+                  Shop Candles
                 </button>
               </Link>
-              <Link href="/about">
+              <Link href="/scents">
                 <button className="btn-luxury-outline border-white text-white hover:bg-white hover:text-[oklch(0.18_0.015_60)]">
-                  Our Story
+                  Explore Scents
                 </button>
               </Link>
             </div>
@@ -103,7 +103,7 @@ export default function Home() {
             <div className="text-center mb-14">
               <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-[oklch(0.62_0.12_70)] mb-3">Curated For You</p>
               <h2 className="font-serif text-4xl md:text-5xl font-light text-[oklch(0.18_0.015_60)]">
-                Featured Collections
+                Featured Candles
               </h2>
               <div className="flex items-center justify-center gap-4 mt-4">
                 <div className="h-px w-16 bg-[oklch(0.72_0.12_75/0.4)]" />
@@ -123,7 +123,7 @@ export default function Home() {
                 <div className="text-center mt-12">
                   <Link href="/shop">
                     <button className="btn-luxury-outline">
-                      View All Products <ArrowRight size={14} />
+                      Shop Candles <ArrowRight size={14} />
                     </button>
                   </Link>
                 </div>
@@ -163,7 +163,7 @@ export default function Home() {
             <div className="text-center mb-14">
               <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-[oklch(0.62_0.12_70)] mb-3">Most Loved</p>
               <h2 className="font-serif text-4xl md:text-5xl font-light text-[oklch(0.18_0.015_60)]">
-                Bestsellers
+                Bestselling Candles
               </h2>
               <div className="flex items-center justify-center gap-4 mt-4">
                 <div className="h-px w-16 bg-[oklch(0.72_0.12_75/0.4)]" />
