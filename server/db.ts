@@ -1,0 +1,898 @@
+import { eq, and, desc, like, ilike, gte, sum, count, sql, asc, inArray } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import { InsertUser, cartItems, categories, orderItems, orders, products, users, notifications, notificationPreferences, InsertNotification, wishlistItems, coupons, Coupon, InsertCoupon, reviews, Review, InsertReview } from "../drizzle/schema";
+import { ENV } from "./_core/env";
+
+let _client: ReturnType<typeof postgres> | null = null;
+let _db: ReturnType<typeof drizzle> | null = null;
+
+export async function getDb() {
+  const connectionString = process.env.NEON_DATABASE_URL;
+  if (!_db && connectionString) {
+    try {
+      _client = postgres(connectionString, { max: 10, prepare: false });
+      _db = drizzle(_client);
+    } catch (error) {
+      console.warn("[Database] Failed to connect:", error);
+      _client = null;
+      _db = null;
+    }
+  }
+  return _db;
+}
+
+export async function upsertUser(user: InsertUser): Promise<void> {
+  if (!user.openId) throw new Error("User openId is required for upsert");
+  const db = await getDb();
+  if (!db) return;
+  try {
+    const values: InsertUser = { openId: user.openId };
+    const updateSet: Record<string, unknown> = {};
+    const textFields = ["name", "email", "loginMethod"] as const;
+    type TextField = (typeof textFields)[number];
+    const assignNullable = (field: TextField) => {
+      const value = user[field];
+      if (value === undefined) return;
+      const normalized = value ?? null;
+      values[field] = normalized;
+      updateSet[field] = normalized;
+    };
+    textFields.forEach(assignNullable);
+    if (user.lastSignedIn !== undefined) {
+      values.lastSignedIn = user.lastSignedIn;
+      updateSet.lastSignedIn = user.lastSignedIn;
+    }
+    if (user.role !== undefined) {
+      values.role = user.role;
+      updateSet.role = user.role;
+    } else if (
+      user.openId === ENV.ownerOpenId ||
+      (!!user.email && ENV.ownerEmails.includes(user.email.trim().toLowerCase()))
+    ) {
+      values.role = "admin";
+      updateSet.role = "admin";
+    }
+    if (!values.lastSignedIn) values.lastSignedIn = new Date();
+    if (Object.keys(updateSet).length === 0) updateSet.lastSignedIn = new Date();
+    await db.insert(users).values(values).onConflictDoUpdate({
+      target: users.openId,
+      set: updateSet as any,
+    });
+  } catch (error) {
+    console.error("[Database] Failed to upsert user:", error);
+    throw error;
+  }
+}
+
+export async function getUserByOpenId(openId: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getUsersByEmail(email: string) {
+  const db = await getDb();
+  if (!db) return [];
+  const normalizedEmail = email.trim().toLowerCase();
+  if (!normalizedEmail) return [];
+  return db
+    .select()
+    .from(users)
+    .where(sql`lower(${users.email}) = ${normalizedEmail}`)
+    .limit(2);
+}
+
+export async function relinkUserToSupabase(
+  userId: number,
+  openId: string,
+  email: string,
+  name?: string | null,
+) {
+  const db = await getDb();
+  if (!db) return;
+  const values: Partial<InsertUser> = {
+    openId,
+    email,
+    loginMethod: "supabase",
+    lastSignedIn: new Date(),
+    updatedAt: new Date(),
+  };
+  if (name?.trim()) values.name = name.trim();
+  await db.update(users).set(values).where(eq(users.id, userId));
+}
+
+// ── Products ──────────────────────────────────────────────────────────────────
+export async function getAllProducts() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(products).orderBy(desc(products.createdAt));
+}
+
+export async function getProductsPage(options: {
+  page: number;
+  pageSize: number;
+  search?: string;
+  filter?: "all" | "featured" | "bestsellers";
+  category?: "all" | "candles" | "scents";
+}) {
+  const db = await getDb();
+  if (!db) return { items: [], page: options.page, pageSize: options.pageSize, total: 0, hasMore: false };
+
+  const page = Math.max(1, Math.floor(options.page));
+  const pageSize = Math.min(48, Math.max(1, Math.floor(options.pageSize)));
+  const search = options.search?.trim();
+  const conditions = [];
+
+  if (search) {
+    const term = `%${search}%`;
+    conditions.push(
+      sql`(${ilike(products.name, term)} OR ${ilike(products.scentNotes, term)} OR ${ilike(products.description, term)})`
+    );
+  }
+  if (options.filter === "featured") conditions.push(eq(products.isFeatured, true));
+  if (options.filter === "bestsellers") conditions.push(eq(products.isBestseller, true));
+  if (options.category === "candles") {
+    const candleCategories = await db
+      .select({ id: categories.id })
+      .from(categories)
+      .where(inArray(categories.slug, ["scented-candles", "pillar-candles", "gift-sets"]));
+    conditions.push(inArray(products.categoryId, candleCategories.map((category) => category.id)));
+  } else if (options.category === "scents") {
+    const scentCategory = await db
+      .select({ id: categories.id })
+      .from(categories)
+      .where(eq(categories.slug, "scents"))
+      .limit(1);
+    conditions.push(eq(products.categoryId, scentCategory[0]?.id ?? -1));
+  }
+
+  const where = conditions.length > 0 ? and(...conditions) : undefined;
+  const [items, totalRows] = await Promise.all([
+    db.select().from(products).where(where).orderBy(desc(products.createdAt), desc(products.id)).limit(pageSize).offset((page - 1) * pageSize),
+    db.select({ total: count(products.id) }).from(products).where(where),
+  ]);
+  const total = Number(totalRows[0]?.total ?? 0);
+
+  return { items, page, pageSize, total, hasMore: page * pageSize < total };
+}
+
+export async function getFeaturedProducts() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(products).where(eq(products.isFeatured, true)).limit(6);
+}
+
+export async function getBestsellerProducts() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(products).where(eq(products.isBestseller, true)).limit(6);
+}
+
+export async function getProductBySlug(slug: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(products).where(eq(products.slug, slug)).limit(1);
+  return result[0];
+}
+
+export async function getProductById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(products).where(eq(products.id, id)).limit(1);
+  return result[0];
+}
+
+export async function createProduct(data: typeof products.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.insert(products).values(data);
+}
+
+export async function updateProduct(id: number, data: Partial<typeof products.$inferInsert>) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.update(products).set(data).where(eq(products.id, id));
+}
+
+export async function deleteProduct(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.delete(products).where(eq(products.id, id));
+}
+
+// ── Categories ────────────────────────────────────────────────────────────────
+export async function getAllCategories() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(categories);
+}
+
+export async function ensureScentsCategory() {
+  const db = await getDb();
+  if (!db) return undefined;
+  const existing = await db.select().from(categories).where(eq(categories.slug, "scents")).limit(1);
+  if (existing[0]) return existing[0];
+  const inserted = await db
+    .insert(categories)
+    .values({
+      name: "Scents",
+      slug: "scents",
+      description: "Standalone fragrances for your space and self",
+    })
+    .returning();
+  return inserted[0];
+}
+
+// ── Cart ──────────────────────────────────────────────────────────────────────
+export async function getCartItems(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(cartItems).where(eq(cartItems.userId, userId));
+}
+
+export async function addCartItem(data: typeof cartItems.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  // Check if same product+size already in cart
+  const existing = await db
+    .select()
+    .from(cartItems)
+    .where(
+      and(
+        eq(cartItems.userId, data.userId),
+        eq(cartItems.productId, data.productId),
+        data.selectedSize ? eq(cartItems.selectedSize, data.selectedSize) : eq(cartItems.selectedSize, "")
+      )
+    )
+    .limit(1);
+  if (existing[0]) {
+    await db
+      .update(cartItems)
+      .set({ quantity: existing[0].quantity + (data.quantity ?? 1) })
+      .where(eq(cartItems.id, existing[0].id));
+    return existing[0].id;
+  }
+  const result = await db.insert(cartItems).values(data).returning({ id: cartItems.id });
+  return result[0].id;
+}
+
+export async function updateCartItem(id: number, userId: number, quantity: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.update(cartItems).set({ quantity }).where(and(eq(cartItems.id, id), eq(cartItems.userId, userId)));
+}
+
+export async function removeCartItem(id: number, userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.delete(cartItems).where(and(eq(cartItems.id, id), eq(cartItems.userId, userId)));
+}
+
+export async function clearCart(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.delete(cartItems).where(eq(cartItems.userId, userId));
+}
+
+// ── Orders ────────────────────────────────────────────────────────────────────
+export async function createOrder(
+  orderData: typeof orders.$inferInsert,
+  items: typeof orderItems.$inferInsert[]
+) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  const result = await db.insert(orders).values(orderData).returning({ id: orders.id });
+  const orderId = result[0].id;
+  const itemsWithOrderId = items.map((item) => ({ ...item, orderId }));
+  await db.insert(orderItems).values(itemsWithOrderId);
+  return orderId;
+}
+
+export async function getOrdersByUser(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(orders).where(eq(orders.userId, userId)).orderBy(desc(orders.createdAt));
+}
+
+export async function getOrderWithItems(orderId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const orderResult = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+  if (!orderResult[0]) return null;
+  const items = await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
+  return { order: orderResult[0], items };
+}
+
+export async function getAllOrders() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(orders).orderBy(desc(orders.createdAt));
+}
+
+export async function updateOrderStatus(orderId: number, status: "pending" | "processing" | "shipped" | "delivered" | "cancelled") {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.update(orders).set({ status }).where(eq(orders.id, orderId));
+}
+
+// ── Seed ──────────────────────────────────────────────────────────────────────
+export async function seedProducts() {
+  const db = await getDb();
+  if (!db) return;
+  await ensureScentsCategory();
+  const existing = await db.select().from(products).limit(1);
+  if (existing.length > 0) return; // already seeded
+
+  const catResult = await db.insert(categories).values([
+    { name: "Scented Candles", slug: "scented-candles", description: "Premium scented candles for every mood" },
+    { name: "Pillar Candles", slug: "pillar-candles", description: "Elegant pillar candles for home décor" },
+    { name: "Gift Sets", slug: "gift-sets", description: "Curated candle gift collections" },
+  ]);
+
+  const productData: typeof products.$inferInsert[] = [
+    {
+      name: "Velvet Rose & Oud",
+      slug: "velvet-rose-oud",
+      categoryId: 1,
+      description: "A deeply romantic blend of Bulgarian rose petals and smoky oud wood, wrapped in warm amber. Perfect for intimate evenings.",
+      scentNotes: "Top: Bulgarian Rose, Bergamot | Heart: Oud Wood, Sandalwood | Base: Amber, Musk",
+      burnTime: "55–60 hours",
+      imageUrl: "https://d2xsxph8kpxj0f.cloudfront.net/310519663535558553/KyKey2VrFEZNwKpbpdN6tN/candle-7_2da19a79.jpg",
+      price: "48.00",
+      sizes: [{ label: "Small (150g)", price: 28 }, { label: "Medium (250g)", price: 48 }, { label: "Large (400g)", price: 68 }],
+      isFeatured: true,
+      isBestseller: true,
+      mood: "romantic",
+    },
+    {
+      name: "Midnight Jasmine",
+      slug: "midnight-jasmine",
+      categoryId: 1,
+      description: "An intoxicating floral bouquet of night-blooming jasmine and white lily, grounded in creamy sandalwood.",
+      scentNotes: "Top: Jasmine, White Lily | Heart: Ylang Ylang, Neroli | Base: Sandalwood, Vanilla",
+      burnTime: "50–55 hours",
+      imageUrl: "https://d2xsxph8kpxj0f.cloudfront.net/310519663535558553/KyKey2VrFEZNwKpbpdN6tN/candle-1_0893b0e3.jpg",
+      price: "42.00",
+      sizes: [{ label: "Small (150g)", price: 24 }, { label: "Medium (250g)", price: 42 }, { label: "Large (400g)", price: 62 }],
+      isFeatured: true,
+      isBestseller: false,
+      mood: "romantic",
+    },
+    {
+      name: "Cedarwood & Sage",
+      slug: "cedarwood-sage",
+      categoryId: 1,
+      description: "A grounding, earthy blend of aged cedarwood and fresh sage, evoking the calm of a forest retreat.",
+      scentNotes: "Top: Sage, Eucalyptus | Heart: Cedarwood, Pine | Base: Vetiver, Patchouli",
+      burnTime: "60–65 hours",
+      imageUrl: "https://d2xsxph8kpxj0f.cloudfront.net/310519663535558553/KyKey2VrFEZNwKpbpdN6tN/candle-4_403d6beb.jpg",
+      price: "44.00",
+      sizes: [{ label: "Small (150g)", price: 26 }, { label: "Medium (250g)", price: 44 }, { label: "Large (400g)", price: 64 }],
+      isFeatured: true,
+      isBestseller: true,
+      mood: "calm",
+    },
+    {
+      name: "Citrus Bloom",
+      slug: "citrus-bloom",
+      categoryId: 1,
+      description: "A bright, uplifting burst of Sicilian lemon, grapefruit, and fresh orange blossom to energise your space.",
+      scentNotes: "Top: Lemon, Grapefruit | Heart: Orange Blossom, Peach | Base: White Musk, Cedarwood",
+      burnTime: "45–50 hours",
+      imageUrl: "https://d2xsxph8kpxj0f.cloudfront.net/310519663535558553/KyKey2VrFEZNwKpbpdN6tN/candle-8_a981bc9b.jpg",
+      price: "38.00",
+      sizes: [{ label: "Small (150g)", price: 22 }, { label: "Medium (250g)", price: 38 }, { label: "Large (400g)", price: 58 }],
+      isFeatured: false,
+      isBestseller: true,
+      mood: "energising",
+    },
+    {
+      name: "Warm Vanilla & Amber",
+      slug: "warm-vanilla-amber",
+      categoryId: 1,
+      description: "A comforting, gourmand blend of Madagascar vanilla bean and golden amber resin — like a warm embrace.",
+      scentNotes: "Top: Vanilla Bean, Caramel | Heart: Amber, Tonka Bean | Base: Musk, Benzoin",
+      burnTime: "55–60 hours",
+      imageUrl: "https://d2xsxph8kpxj0f.cloudfront.net/310519663535558553/KyKey2VrFEZNwKpbpdN6tN/candle-3_c4b79e22.jpg",
+      price: "46.00",
+      sizes: [{ label: "Small (150g)", price: 27 }, { label: "Medium (250g)", price: 46 }, { label: "Large (400g)", price: 66 }],
+      isFeatured: true,
+      isBestseller: true,
+      mood: "cosy",
+    },
+    {
+      name: "Himalayan Mist",
+      slug: "himalayan-mist",
+      categoryId: 1,
+      description: "A serene, meditative blend of cool mountain air, white tea, and soft iris — designed for mindful moments.",
+      scentNotes: "Top: White Tea, Bergamot | Heart: Iris, Violet | Base: Driftwood, Musk",
+      burnTime: "50–55 hours",
+      imageUrl: "https://d2xsxph8kpxj0f.cloudfront.net/310519663535558553/KyKey2VrFEZNwKpbpdN6tN/candle-5_a297d52f.jpg",
+      price: "44.00",
+      sizes: [{ label: "Small (150g)", price: 26 }, { label: "Medium (250g)", price: 44 }, { label: "Large (400g)", price: 64 }],
+      isFeatured: false,
+      isBestseller: false,
+      mood: "calm",
+    },
+    {
+      name: "Black Orchid",
+      slug: "black-orchid",
+      categoryId: 1,
+      description: "A mysterious, opulent fragrance of dark orchid and black truffle, underscored by rich patchouli.",
+      scentNotes: "Top: Black Orchid, Bergamot | Heart: Dark Truffle, Ylang | Base: Patchouli, Amber",
+      burnTime: "55–60 hours",
+      imageUrl: "https://d2xsxph8kpxj0f.cloudfront.net/310519663535558553/KyKey2VrFEZNwKpbpdN6tN/candle-2_8135761e.jpg",
+      price: "52.00",
+      sizes: [{ label: "Small (150g)", price: 30 }, { label: "Medium (250g)", price: 52 }, { label: "Large (400g)", price: 72 }],
+      isFeatured: true,
+      isBestseller: false,
+      mood: "mysterious",
+    },
+    {
+      name: "Amber Marble Pillar",
+      slug: "amber-marble-pillar",
+      categoryId: 2,
+      description: "A sculptural amber glass pillar candle with a gold lid — a statement piece for any interior.",
+      scentNotes: "Top: Amber Resin | Heart: Sandalwood | Base: Musk",
+      burnTime: "70–80 hours",
+      imageUrl: "https://d2xsxph8kpxj0f.cloudfront.net/310519663535558553/KyKey2VrFEZNwKpbpdN6tN/candle-6_66d6d8ba.webp",
+      price: "65.00",
+      sizes: [{ label: "Standard (500g)", price: 65 }, { label: "Grande (800g)", price: 95 }],
+      isFeatured: false,
+      isBestseller: false,
+      mood: "cosy",
+    },
+    {
+      name: "The OmaLuxe Signature Set",
+      slug: "omaluxe-signature-set",
+      categoryId: 3,
+      description: "Our most beloved trio — Velvet Rose & Oud, Midnight Jasmine, and Warm Vanilla & Amber — presented in a luxury gift box.",
+      scentNotes: "A curated collection of three bestselling fragrances",
+      burnTime: "45–60 hours each",
+      imageUrl: "https://d2xsxph8kpxj0f.cloudfront.net/310519663535558553/KyKey2VrFEZNwKpbpdN6tN/candle-9_72611a64.jpg",
+      price: "120.00",
+      sizes: [{ label: "Trio Gift Set", price: 120 }],
+      isFeatured: true,
+      isBestseller: true,
+      mood: "romantic",
+    },
+  ];
+
+  await db.insert(products).values(productData);
+}
+
+// ── Notification helpers ─────────────────────────────────────────────────────
+
+export async function createNotification(data: InsertNotification): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(notifications).values(data);
+}
+
+export async function getNotificationsForUser(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(notifications)
+    .where(eq(notifications.userId, userId))
+    .orderBy(desc(notifications.createdAt))
+    .limit(50);
+}
+
+export async function getUnreadCount(userId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const rows = await db
+    .select()
+    .from(notifications)
+    .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+  return rows.length;
+}
+
+export async function markNotificationRead(id: number, userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .update(notifications)
+    .set({ isRead: true })
+    .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
+}
+
+export async function markAllNotificationsRead(userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .update(notifications)
+    .set({ isRead: true })
+    .where(eq(notifications.userId, userId));
+}
+
+export async function getNotificationPreferences(userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db
+    .select()
+    .from(notificationPreferences)
+    .where(eq(notificationPreferences.userId, userId))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function upsertNotificationPreferences(
+  userId: number,
+  prefs: { orderUpdates: boolean; promotions: boolean; newArrivals: boolean }
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .insert(notificationPreferences)
+    .values({ userId, ...prefs })
+    .onConflictDoUpdate({
+      target: notificationPreferences.userId,
+      set: { ...prefs, updatedAt: new Date() },
+    });
+}
+
+export async function getAllUsersForBroadcast() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({ id: users.id }).from(users);
+}
+
+export async function getUsersWithPreference(
+  pref: "orderUpdates" | "promotions" | "newArrivals"
+) {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .select({ userId: notificationPreferences.userId })
+    .from(notificationPreferences)
+    .where(eq(notificationPreferences[pref], true));
+  return rows.map((r) => r.userId);
+}
+
+
+// ── Wishlist ──────────────────────────────────────────────────────────────────
+export async function addToWishlist(userId: number, productId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  
+  // Check if already in wishlist
+  const existing = await db
+    .select()
+    .from(wishlistItems)
+    .where(and(eq(wishlistItems.userId, userId), eq(wishlistItems.productId, productId)))
+    .limit(1);
+  
+  if (existing.length > 0) return; // Already wishlisted
+  
+  await db.insert(wishlistItems).values({ userId, productId });
+}
+
+export async function removeFromWishlist(userId: number, productId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db
+    .delete(wishlistItems)
+    .where(and(eq(wishlistItems.userId, userId), eq(wishlistItems.productId, productId)));
+}
+
+export async function getWishlistItems(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const items = await db
+    .select()
+    .from(wishlistItems)
+    .where(eq(wishlistItems.userId, userId))
+    .orderBy(desc(wishlistItems.createdAt));
+  return items;
+}
+
+export async function isProductWishlisted(userId: number, productId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db
+    .select()
+    .from(wishlistItems)
+    .where(and(eq(wishlistItems.userId, userId), eq(wishlistItems.productId, productId)))
+    .limit(1);
+  return result.length > 0;
+}
+
+export async function getWishlistCount(userId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db
+    .select({ count: wishlistItems.id })
+    .from(wishlistItems)
+    .where(eq(wishlistItems.userId, userId));
+  return result.length;
+}
+
+// ===== ANALYTICS & REPORTING =====
+
+export async function getSalesAnalytics() {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db
+    .select({
+      totalRevenue: sum(orders.total),
+      totalOrders: count(orders.id),
+      averageOrderValue: sql`AVG(${orders.total})`,
+    })
+    .from(orders)
+    .where(eq(orders.status, 'delivered'));
+  
+  return result[0] || { totalRevenue: 0, totalOrders: 0, averageOrderValue: 0 };
+}
+
+export async function getRevenueByDate(days: number = 30): Promise<Array<{ date: any; revenue: any; orders: number }>> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+  const startDateStr = startDate.toISOString().split('T')[0];
+  
+  const result = await db
+    .select({
+      date: sql<string>`DATE(${orders.createdAt})`,
+      revenue: sum(orders.total),
+      orders: count(orders.id),
+    })
+    .from(orders)
+    .where(and(eq(orders.status, "delivered"), gte(orders.createdAt, new Date(`${startDateStr}T00:00:00.000Z`))))
+    .groupBy(sql`DATE(${orders.createdAt})`)
+    .orderBy(desc(sql`DATE(${orders.createdAt})`));
+
+  return result;
+}
+
+export async function getTopProducts(limit: number = 10) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db
+    .select({
+      productId: orderItems.productId,
+      productName: products.name,
+      totalSold: sum(orderItems.quantity),
+      totalRevenue: sum(orderItems.subtotal),
+    })
+    .from(orderItems)
+    .leftJoin(products, eq(orderItems.productId, products.id))
+    .groupBy(orderItems.productId, products.name)
+    .orderBy(desc(sum(orderItems.quantity)))
+    .limit(limit);
+  
+  return result;
+}
+
+export async function getInventoryStatus() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db
+    .select({
+      id: products.id,
+      name: products.name,
+      price: products.price,
+      stock: products.stock,
+      isFeatured: products.isFeatured,
+      isBestseller: products.isBestseller,
+    })
+    .from(products)
+    .orderBy(asc(products.stock));
+  
+  return result;
+}
+
+export async function getCustomerMetrics() {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const totalCustomers = await db.select({ count: count() }).from(users).where(eq(users.role, 'user'));
+  const totalOrders = await db.select({ count: count() }).from(orders);
+  const totalRevenue = await db.select({ sum: sum(orders.total) }).from(orders).where(eq(orders.status, 'delivered'));
+  
+  return {
+    totalCustomers: totalCustomers[0]?.count || 0,
+    totalOrders: totalOrders[0]?.count || 0,
+    totalRevenue: totalRevenue[0]?.sum || 0,
+  };
+}
+
+// ===== COUPON MANAGEMENT =====
+
+export async function createCoupon(coupon: InsertCoupon) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.insert(coupons).values(coupon);
+}
+
+export async function getCoupons(active: boolean = true) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db
+    .select()
+    .from(coupons)
+    .where(eq(coupons.isActive, active))
+    .orderBy(desc(coupons.createdAt));
+  
+  return result;
+}
+
+export async function getCouponByCode(code: string) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db
+    .select()
+    .from(coupons)
+    .where(and(eq(coupons.code, code), eq(coupons.isActive, true)))
+    .limit(1);
+  
+  return result[0] || null;
+}
+
+export async function updateCoupon(id: number, updates: Partial<Coupon>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(coupons).set(updates).where(eq(coupons.id, id));
+}
+
+export async function deleteCoupon(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.delete(coupons).where(eq(coupons.id, id));
+}
+
+export async function incrementCouponUses(couponId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db
+    .update(coupons)
+    .set({ currentUses: sql`${coupons.currentUses} + 1` })
+    .where(eq(coupons.id, couponId));
+}
+
+// ===== CUSTOMER MANAGEMENT =====
+
+export async function getAllCustomers() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      createdAt: users.createdAt,
+      lastSignedIn: users.lastSignedIn,
+    })
+    .from(users)
+    .where(eq(users.role, "user"))
+    .orderBy(desc(users.createdAt));
+  
+  return result;
+}
+
+export async function getCustomerOrderHistory(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db
+    .select()
+    .from(orders)
+    .where(eq(orders.userId, userId))
+    .orderBy(desc(orders.createdAt));
+  
+  return result;
+}
+
+// ===== EMAIL MARKETING =====
+
+export async function getEmailListForMarketing() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db
+    .select({
+      id: users.id,
+      email: users.email,
+      name: users.name,
+    })
+    .from(users)
+    .where(and(eq(users.role, "user"), like(users.email, "%@%")))
+    .orderBy(desc(users.createdAt));
+  
+  return result;
+}
+
+// ── Reviews ──────────────────────────────────────────────────────────────────
+export async function createReview(review: InsertReview) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.insert(reviews).values(review);
+}
+
+export async function getReviewsByProduct(productId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db
+    .select()
+    .from(reviews)
+    .where(eq(reviews.productId, productId))
+    .orderBy(desc(reviews.createdAt));
+  
+  return result;
+}
+
+export async function getAverageRating(productId: number) {
+  const db = await getDb();
+  if (!db) return { avgRating: 0, totalReviews: 0 };
+  
+  const result = await db
+    .select({
+      avgRating: sql`AVG(${reviews.rating})`,
+      totalReviews: count(reviews.id),
+    })
+    .from(reviews)
+    .where(eq(reviews.productId, productId));
+  
+  return {
+    avgRating: result[0]?.avgRating ? parseFloat(result[0].avgRating as any) : 0,
+    totalReviews: result[0]?.totalReviews || 0,
+  };
+}
+
+export async function deleteReview(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.delete(reviews).where(eq(reviews.id, id));
+}
+
+export async function updateReviewHelpful(id: number, helpful: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(reviews).set({ helpful }).where(eq(reviews.id, id));
+}
+
+export async function getUserReview(productId: number, userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db
+    .select()
+    .from(reviews)
+    .where(and(eq(reviews.productId, productId), eq(reviews.userId, userId)))
+    .limit(1);
+  
+  return result[0] || null;
+}
+
+export async function getReviewById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db
+    .select()
+    .from(reviews)
+    .where(eq(reviews.id, id))
+    .limit(1);
+  
+  return result[0] || null;
+}
