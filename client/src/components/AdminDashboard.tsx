@@ -71,6 +71,8 @@ export default function AdminDashboard() {
   const { data: customers } = trpc.admin.customers.list.useQuery();
   const { data: coupons } = trpc.admin.coupons.list.useQuery({ active: true });
   const { data: orders } = trpc.admin.allOrders.useQuery();
+  const { data: subscribers } = trpc.admin.email.newsletterSubscribers.useQuery();
+  const utils = trpc.useUtils();
 
   // Mutations
   const createCoupon = trpc.admin.coupons.create.useMutation({
@@ -87,6 +89,14 @@ export default function AdminDashboard() {
       toast.success("Coupon deleted");
       trpc.useUtils().admin.coupons.list.invalidate();
     },
+  });
+
+  const updateStock = trpc.admin.analytics.updateStock.useMutation({
+    onSuccess: () => {
+      toast.success("Stock updated");
+      utils.admin.analytics.inventory.invalidate();
+    },
+    onError: (error) => toast.error(error.message),
   });
 
   const sendBroadcast = trpc.admin.email.sendBroadcast.useMutation({
@@ -286,8 +296,20 @@ export default function AdminDashboard() {
                     <td className="px-4 py-3 font-sans text-sm text-[oklch(0.18_0.015_60)]">
                       {item.name}
                     </td>
-                    <td className="px-4 py-3 font-sans text-sm font-medium text-[oklch(0.38_0.07_55)]">
-                      {item.stock}
+                    <td className="px-4 py-3">
+                      <input
+                        type="number"
+                        min={0}
+                        defaultValue={item.stock}
+                        onBlur={(event) => {
+                          const stock = Number(event.target.value);
+                          if (Number.isInteger(stock) && stock !== item.stock) {
+                            updateStock.mutate({ id: item.id, stock });
+                          }
+                        }}
+                        className="w-20 border border-[oklch(0.88_0.015_75)] px-2 py-1 font-sans text-sm"
+                        aria-label={`Stock for ${item.name}`}
+                      />
                     </td>
                     <td className="px-4 py-3 font-sans text-sm text-[oklch(0.52_0.02_60)]">
                       {formatCurrency(item.price)}
@@ -344,7 +366,7 @@ export default function AdminDashboard() {
                     {c.email}
                   </td>
                   <td className="px-4 py-3 font-sans text-sm text-[oklch(0.38_0.07_55)]">
-                    0
+                    {c.orderCount ?? 0}
                   </td>
                   <td className="px-4 py-3 font-sans text-sm text-[oklch(0.52_0.02_60)]">
                     {new Date(c.createdAt).toLocaleDateString()}
@@ -562,6 +584,9 @@ export default function AdminDashboard() {
             Send Broadcast Email
           </h3>
           <div className="space-y-4 max-w-2xl">
+            <p className="font-sans text-sm text-[oklch(0.52_0.02_60)]">
+              Newsletter subscribers: <strong>{subscribers?.length ?? 0}</strong>
+            </p>
             <div>
               <label className="block font-sans text-sm mb-2 text-[oklch(0.18_0.015_60)]">
                 Subject

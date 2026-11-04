@@ -3,6 +3,7 @@ import { useParams, Link } from "wouter";
 import { CheckCircle, Package, ArrowRight } from "lucide-react";
 import { getGuestOrder } from "@/lib/guestCart";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { MessageCircle } from "lucide-react";
 
 type GuestOrder = {
   id: number;
@@ -48,6 +49,7 @@ export default function OrderConfirmation() {
     quantity: item.quantity,
     subtotal: (Number(item.price) * item.quantity).toFixed(2),
   })) : []);
+  const whatsappUrl = `https://wa.me/254778758364?text=${encodeURIComponent(`Hi OmaLuxe, I’m checking on order #${orderId}.`)}`;
 
   return (
     <div className="min-h-screen pt-20">
@@ -140,6 +142,9 @@ export default function OrderConfirmation() {
               Continue Shopping <ArrowRight size={14} />
             </button>
           </Link>
+          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="btn-luxury-outline inline-flex items-center justify-center gap-2">
+            <MessageCircle size={14} /> Ask on WhatsApp
+          </a>
         </div>
       </div>
     </div>

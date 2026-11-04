@@ -50,6 +50,13 @@
       "when": 1793800000000,
       "tag": "0006_guest_orders",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1793801000000,
+      "tag": "0007_newsletter_subscribers",
+      "breakpoints": true
     }
   ]
 }

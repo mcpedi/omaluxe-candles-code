@@ -4,6 +4,7 @@ import { COOKIE_NAME } from "../shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { sendOrderEmails } from "./_core/orderEmail";
 import { notifyOwner } from "./_core/notification";
 import { invokeLLM } from "./_core/llm";
 import { storagePut } from "./storage";
@@ -62,10 +63,12 @@ import {
   getAllCustomers,
   getCustomerOrderHistory,
   getEmailListForMarketing,
+  subscribeToNewsletter,
+  updateProductStock,
   getAllCategories,
   ensureScentsCategory,
 } from "./db";
-import { inArray } from "drizzle-orm";
+import { desc, inArray } from "drizzle-orm";
 import { notifications, users } from "../drizzle/schema";
 import type { InsertNotification } from "../drizzle/schema";
 import { getDb } from "./db";
@@ -89,6 +92,7 @@ export const appRouter = router({
       await seedProducts();
       return getAllProducts();
     }),
+
     page: publicProcedure
       .input(
         z.object({
@@ -217,6 +221,15 @@ export const appRouter = router({
       }),
   }),
 
+  newsletter: router({
+    subscribe: publicProcedure
+      .input(z.object({ email: z.string().email().transform((email) => email.trim().toLowerCase()) }))
+      .mutation(async ({ input }) => {
+        await subscribeToNewsletter(input.email);
+        return { success: true };
+      }),
+  }),
+
   // ── Cart ────────────────────────────────────────────────────────────────────
   cart: router({
     get: protectedProcedure.query(async ({ ctx }) => {
@@ -305,14 +318,13 @@ export const appRouter = router({
         // Clear cart after successful order
         if (ctx.user) await clearCart(ctx.user.id);
 
-        // Notify owner
-        const itemsList = items
-          .map((i) => `• ${i.productName}${i.selectedSize ? ` (${i.selectedSize})` : ""} x${i.quantity} — $${i.subtotal}`)
-          .join("\n");
-
-        await notifyOwner({
-          title: `🕯️ New Order #${orderId} — $${input.total}`,
-          content: `**New order placed on OmaLuxe Candles and Scents!**\n\n**Customer:** ${input.customerName}\n**Email:** ${input.customerEmail}\n**Phone:** ${input.customerPhone || "N/A"}\n**Shipping Address:** ${input.shippingAddress}, ${input.city || ""}, ${input.country || ""} ${input.postalCode || ""}\n\n**Order Items:**\n${itemsList}\n\n**Subtotal:** $${input.subtotal}\n**Shipping:** $${input.shipping}\n**Total: $${input.total}**\n\n**Order Notes:** ${input.notes || "None"}\n\nOrder ID: #${orderId}`,
+        await sendOrderEmails({
+          orderId,
+          ...orderData,
+          items,
+          subtotal: input.subtotal,
+          shipping: input.shipping ?? "0",
+          total: input.total,
         });
 
         // Create in-app notification for customer
@@ -412,6 +424,12 @@ export const appRouter = router({
       inventory: adminProcedure.query(async () => {
           return await getInventoryStatus();
         }),
+      updateStock: adminProcedure
+        .input(z.object({ id: z.number(), stock: z.number().int().min(0) }))
+        .mutation(async ({ input }) => {
+          await updateProductStock(input.id, input.stock);
+          return { success: true };
+        }),
       customerMetrics: adminProcedure.query(async () => {
           return await getCustomerMetrics();
         }),
@@ -490,6 +508,12 @@ export const appRouter = router({
     email: router({
       getList: adminProcedure.query(async () => {
           return await getEmailListForMarketing();
+        }),
+        newsletterSubscribers: adminProcedure.query(async () => {
+          const db = await getDb();
+          if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+          const { newsletterSubscribers } = await import("../drizzle/schema");
+          return db.select().from(newsletterSubscribers).orderBy(desc(newsletterSubscribers.createdAt));
         }),
       sendBroadcast: adminProcedure
         .input(

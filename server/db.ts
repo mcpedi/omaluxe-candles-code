@@ -1,7 +1,7 @@
 import { eq, and, desc, like, ilike, gte, sum, count, sql, asc, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { InsertUser, cartItems, categories, orderItems, orders, products, users, notifications, notificationPreferences, InsertNotification, wishlistItems, coupons, Coupon, InsertCoupon, reviews, Review, InsertReview } from "../drizzle/schema";
+import { InsertUser, cartItems, categories, orderItems, orders, products, users, notifications, notificationPreferences, InsertNotification, wishlistItems, coupons, Coupon, InsertCoupon, reviews, Review, InsertReview, newsletterSubscribers } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _client: ReturnType<typeof postgres> | null = null;
@@ -207,6 +207,12 @@ export async function getAllCategories() {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(categories);
+}
+
+export async function subscribeToNewsletter(email: string) {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  await db.insert(newsletterSubscribers).values({ email }).onConflictDoNothing();
 }
 
 export async function ensureScentsCategory() {
@@ -691,6 +697,12 @@ export async function getInventoryStatus() {
   return result;
 }
 
+export async function updateProductStock(id: number, stock: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(products).set({ stock, updatedAt: new Date() }).where(eq(products.id, id));
+}
+
 export async function getCustomerMetrics() {
   const db = await getDb();
   if (!db) return null;
@@ -778,9 +790,12 @@ export async function getAllCustomers() {
       email: users.email,
       createdAt: users.createdAt,
       lastSignedIn: users.lastSignedIn,
+      orderCount: count(orders.id),
     })
     .from(users)
+    .leftJoin(orders, eq(orders.userId, users.id))
     .where(eq(users.role, "user"))
+    .groupBy(users.id)
     .orderBy(desc(users.createdAt));
   
   return result;

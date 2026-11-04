@@ -3,7 +3,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { useState } from "react";
 import { Link } from "wouter";
-import { Package, ChevronDown, ChevronUp } from "lucide-react";
+import { Package, ChevronDown, ChevronUp, Check } from "lucide-react";
 import { OrderListSkeleton, PageSpinner } from "@/components/LoadingSkeletons";
 
 export default function Account() {
@@ -140,6 +140,7 @@ function OrderDetailExpanded({ orderId }: { orderId: number }) {
   return (
     <div className="px-5 pb-5 border-t border-[oklch(0.88_0.015_75)]">
       <div className="pt-4 space-y-2">
+        <OrderStatusTimeline status={data.order.status} />
         {data.items.map((item) => (
           <div key={item.id} className="flex justify-between font-sans text-sm">
             <span className="text-[oklch(0.38_0.04_60)]">
@@ -157,6 +158,26 @@ function OrderDetailExpanded({ orderId }: { orderId: number }) {
           Ships to: {data.order.shippingAddress}{data.order.city ? `, ${data.order.city}` : ""}
         </p>
       </div>
+    </div>
+  );
+}
+
+function OrderStatusTimeline({ status }: { status: string }) {
+  const statuses = ["pending", "processing", "shipped", "delivered"];
+  const currentIndex = statuses.indexOf(status);
+  return (
+    <div className="mb-5 grid grid-cols-4 gap-2">
+      {statuses.map((step, index) => {
+        const complete = status !== "cancelled" && index <= currentIndex;
+        return (
+          <div key={step} className="text-center">
+            <div className={`mx-auto mb-2 flex h-7 w-7 items-center justify-center rounded-full text-xs ${complete ? "bg-[oklch(0.62_0.12_70)] text-white" : "bg-[oklch(0.88_0.015_75)] text-[oklch(0.52_0.02_60)]"}`}>
+              {complete ? <Check size={13} /> : index + 1}
+            </div>
+            <p className="font-sans text-[9px] uppercase tracking-[0.08em] text-[oklch(0.52_0.02_60)]">{step}</p>
+          </div>
+        );
+      })}
     </div>
   );
 }

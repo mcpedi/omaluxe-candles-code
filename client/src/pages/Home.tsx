@@ -3,12 +3,22 @@ import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import ProductCard from "@/components/ProductCard";
 import { ProductGridSkeleton } from "@/components/LoadingSkeletons";
-import { Flame, Leaf, Award, ArrowRight } from "lucide-react";
+import { Flame, Leaf, Award, ArrowRight, Mail } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const HERO_IMAGE = "https://d2xsxph8kpxj0f.cloudfront.net/310519663535558553/KyKey2VrFEZNwKpbpdN6tN/hero-candle_55821378.jpg";
 const LIFESTYLE_IMAGE = "https://d2xsxph8kpxj0f.cloudfront.net/310519663535558553/KyKey2VrFEZNwKpbpdN6tN/hero-lifestyle_9873737f.jpg";
 
 export default function Home() {
+  const [email, setEmail] = useState("");
+  const subscribe = trpc.newsletter.subscribe.useMutation({
+    onSuccess: () => {
+      setEmail("");
+      toast.success("You’re on the list", { description: "We’ll share new scents and offers with you." });
+    },
+    onError: (error) => toast.error(error.message || "Unable to subscribe"),
+  });
   const { data: featured, isLoading: featuredLoading } = trpc.products.featured.useQuery();
   const { data: bestsellers, isLoading: bestsellersLoading } = trpc.products.bestsellers.useQuery();
 
@@ -129,6 +139,40 @@ export default function Home() {
                 </div>
               </>
             )}
+
+            <section className="bg-[oklch(0.88_0.025_66/0.84)] py-20">
+              <div className="container max-w-2xl text-center">
+                <Mail size={24} className="mx-auto mb-4 text-[oklch(0.62_0.12_70)]" />
+                <p className="font-sans text-[10px] tracking-[0.3em] uppercase text-[oklch(0.62_0.12_70)] mb-3">
+                  Stay in the glow
+                </p>
+                <h2 className="font-serif text-4xl font-light text-[oklch(0.18_0.015_60)]">
+                  Join the OmaLuxe list
+                </h2>
+                <p className="mt-4 font-sans text-sm leading-relaxed text-[oklch(0.52_0.02_60)]">
+                  Be the first to hear about new scents, candle care tips, and special offers.
+                </p>
+                <form
+                  className="mx-auto mt-7 flex max-w-lg flex-col gap-3 sm:flex-row"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    subscribe.mutate({ email });
+                  }}
+                >
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="Your email address"
+                    className="min-w-0 flex-1 border border-[oklch(0.88_0.015_75)] bg-white px-4 py-3 font-sans text-sm text-[oklch(0.18_0.015_60)] focus:outline-none focus:border-[oklch(0.62_0.12_70)]"
+                  />
+                  <button type="submit" disabled={subscribe.isPending} className="btn-luxury whitespace-nowrap disabled:opacity-60">
+                    {subscribe.isPending ? "Joining…" : "Join the list"}
+                  </button>
+                </form>
+              </div>
+            </section>
           </div>
         </section>
       )}
