@@ -56,7 +56,7 @@ export default function Checkout() {
     return (
       <div className="min-h-screen pt-20 flex items-center justify-center">
         <div className="text-center">
-          <p className="font-serif text-2xl text-[oklch(0.52_0.02_60)] mb-4">Your cart is empty</p>
+          <p className="font-serif text-2xl text-[oklch(0.30_0.02_60)] mb-4">Your cart is empty</p>
           <Link href="/shop"><button className="btn-luxury">Continue Shopping</button></Link>
         </div>
       </div>
@@ -92,7 +92,7 @@ export default function Checkout() {
   const inputClass =
     "w-full bg-white border border-[oklch(0.88_0.015_75)] px-4 py-3 font-sans text-sm text-[oklch(0.18_0.015_60)] focus:outline-none focus:border-[oklch(0.62_0.12_70)] transition-colors";
   const labelClass =
-    "font-sans text-[10px] tracking-[0.15em] uppercase text-[oklch(0.52_0.02_60)] block mb-2";
+    "font-sans text-[10px] tracking-[0.15em] uppercase text-[oklch(0.30_0.02_60)] block mb-2";
 
   return (
     <div className="min-h-screen pt-20">
@@ -217,9 +217,9 @@ export default function Checkout() {
                           {item.product?.name}
                         </p>
                         {item.selectedSize && (
-                          <p className="font-sans text-[10px] text-[oklch(0.52_0.02_60)]">{item.selectedSize}</p>
+                          <p className="font-sans text-[10px] text-[oklch(0.30_0.02_60)]">{item.selectedSize}</p>
                         )}
-                        <p className="font-sans text-[10px] text-[oklch(0.52_0.02_60)]">Qty: {item.quantity}</p>
+                        <p className="font-sans text-[10px] text-[oklch(0.30_0.02_60)]">Qty: {item.quantity}</p>
                       </div>
                       <p className="font-sans text-xs font-medium text-[oklch(0.38_0.07_55)] shrink-0">
                         KSh {(parseFloat(item.price) * item.quantity).toFixed(2)}
@@ -228,10 +228,10 @@ export default function Checkout() {
                   ))}
                 </div>
                 <div className="border-t border-[oklch(0.88_0.015_75)] pt-4 space-y-2 mb-5">
-                  <div className="flex justify-between font-sans text-sm text-[oklch(0.38_0.04_60)]">
+                  <div className="flex justify-between font-sans text-sm text-[oklch(0.30_0.02_60)]">
                     <span>Subtotal</span><span>KSh {subtotal.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between font-sans text-sm text-[oklch(0.38_0.04_60)]">
+                  <div className="flex justify-between font-sans text-sm text-[oklch(0.30_0.02_60)]">
                     <span>Shipping</span><span>{shipping === 0 ? "Free" : `KSh ${shipping.toFixed(2)}`}</span>
                   </div>
                   <div className="flex justify-between font-sans text-base font-semibold text-[oklch(0.18_0.015_60)] pt-2 border-t border-[oklch(0.88_0.015_75)]">
@@ -245,10 +245,10 @@ export default function Checkout() {
                 >
                   {placeOrder.isPending ? "Placing Order..." : "Place Order"}
                 </button>
-                <p className="font-sans text-[10px] text-center text-[oklch(0.62_0.02_60)] mt-3">
+                <p className="font-sans text-[10px] text-center text-[oklch(0.38_0.02_60)] mt-3">
                   Secure checkout · No payment required for demo
                 </p>
-                <p className="mt-3 text-center font-sans text-[10px] leading-relaxed text-[oklch(0.62_0.02_60)]">
+                <p className="mt-3 text-center font-sans text-[10px] leading-relaxed text-[oklch(0.38_0.02_60)]">
                   By placing your order, you acknowledge our{" "}
                   <Link href="/data-protection">
                     <span className="text-[oklch(0.38_0.07_55)] underline underline-offset-2 cursor-pointer">
