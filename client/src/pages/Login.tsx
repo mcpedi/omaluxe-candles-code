@@ -43,6 +43,7 @@ export default function Login() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [pending, setPending] = useState(false);
   const [recoveryCompleted, setRecoveryCompleted] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -85,6 +86,13 @@ export default function Login() {
 
     if (!supabase) {
       setErrorMessage("Sign-in is not configured yet. Please try again later.");
+      return;
+    }
+
+    if ((mode === "signin" || mode === "signup") && !termsAccepted) {
+      setErrorMessage(
+        "Please accept the Terms and Conditions and Data Protection Policy to continue."
+      );
       return;
     }
 
@@ -339,6 +347,27 @@ export default function Login() {
                     Forgot your password?
                   </button>
                 </div>
+              )}
+              {(mode === "signin" || mode === "signup") && (
+                <label className="flex items-start gap-3 font-sans text-xs leading-relaxed text-[oklch(0.52_0.02_60)]">
+                  <input
+                    type="checkbox"
+                    name="termsAccepted"
+                    required
+                    checked={termsAccepted}
+                    onChange={event => setTermsAccepted(event.target.checked)}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-[oklch(0.62_0.12_70)]"
+                  />
+                  <span>
+                    I agree to the Terms and Conditions and the{" "}
+                    <Link href="/data-protection">
+                      <span className="text-[oklch(0.38_0.07_55)] underline underline-offset-4 cursor-pointer">
+                        Data Protection Policy
+                      </span>
+                    </Link>
+                    .
+                  </span>
+                </label>
               )}
               <button
                 type="submit"
