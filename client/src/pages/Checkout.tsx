@@ -90,9 +90,9 @@ export default function Checkout() {
   };
 
   const inputClass =
-    "w-full bg-white border border-[oklch(0.88_0.015_75)] px-4 py-3 font-sans text-sm text-[oklch(0.18_0.015_60)] focus:outline-none focus:border-[oklch(0.62_0.12_70)] transition-colors";
+    "w-full bg-white border border-[oklch(0.88_0.015_75)] px-4 py-3 font-sans text-sm font-bold text-black focus:outline-none focus:border-[oklch(0.62_0.12_70)] transition-colors";
   const labelClass =
-    "font-sans text-[10px] tracking-[0.15em] uppercase text-[oklch(0.30_0.02_60)] block mb-2";
+    "font-sans text-[10px] font-bold tracking-[0.15em] uppercase text-black block mb-2";
 
   return (
     <div className="min-h-screen pt-20">
