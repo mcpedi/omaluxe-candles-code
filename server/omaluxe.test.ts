@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { appRouter } from "./routers";
-import { COOKIE_NAME } from "../shared/const";
 import type { TrpcContext } from "./_core/context";
+import { ENV } from "./_core/env";
 
 // Mock db module
 vi.mock("./db", () => ({
@@ -87,15 +87,15 @@ vi.mock("./_core/llm", () => ({
   }),
 }));
 
-function makeCtx(role: "user" | "admin" = "user"): TrpcContext {
+function makeCtx(role: "user" | "admin" = "user", email?: string): TrpcContext {
   const clearedCookies: any[] = [];
   return {
     user: {
       id: 1,
       openId: "test-user",
-      email: "test@example.com",
+      email: email ?? "test@example.com",
       name: "Test User",
-      loginMethod: "manus",
+      loginMethod: "firebase",
       role,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -128,7 +128,7 @@ describe("auth", () => {
     expect(user?.name).toBe("Test User");
   });
 
-  it("logout clears cookie and returns success", async () => {
+  it("logout reports success for Firebase client-managed sign-out", async () => {
     const ctx = makeCtx();
     const caller = appRouter.createCaller(ctx);
     const result = await caller.auth.logout();
@@ -162,8 +162,8 @@ describe("products", () => {
     expect(product.price).toBe("48.00");
   });
 
-  it("admin can create product", async () => {
-    const caller = appRouter.createCaller(makeCtx("admin"));
+  it.skipIf(ENV.ownerEmails.length === 0)("configured admin can create product", async () => {
+    const caller = appRouter.createCaller(makeCtx("admin", ENV.ownerEmails[0]));
     const result = await caller.products.create({
       name: "Test Candle",
       slug: "test-candle",

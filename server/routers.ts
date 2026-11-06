@@ -1,9 +1,8 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { COOKIE_NAME } from "../shared/const";
-import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { hasFirebaseAdminConfiguration } from "./_core/firebase-auth";
 import { sendOrderEmails } from "./_core/orderEmail";
 import { notifyOwner } from "./_core/notification";
 import { invokeLLM } from "./_core/llm";
@@ -79,11 +78,13 @@ export const appRouter = router({
 
   auth: router({
     me: publicProcedure.query((opts) => opts.ctx.user),
-    logout: publicProcedure.mutation(({ ctx }) => {
-      const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return { success: true } as const;
-    }),
+    configuration: publicProcedure.query(() => ({
+      firebaseAdminConfigured: hasFirebaseAdminConfiguration(),
+      databaseConfigured: Boolean(
+        (process.env.NEON_DATABASE_URL || process.env.DATABASE_URL)?.trim()
+      ),
+    })),
+    logout: publicProcedure.mutation(() => ({ success: true }) as const),
   }),
 
   // ── Products ────────────────────────────────────────────────────────────────

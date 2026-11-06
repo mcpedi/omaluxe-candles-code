@@ -8,7 +8,8 @@ let _client: ReturnType<typeof postgres> | null = null;
 let _db: ReturnType<typeof drizzle> | null = null;
 
 export async function getDb() {
-  const connectionString = process.env.NEON_DATABASE_URL;
+  const connectionString =
+    process.env.NEON_DATABASE_URL ?? process.env.DATABASE_URL;
   if (!_db && connectionString) {
     try {
       _client = postgres(connectionString, { max: 10, prepare: false });
@@ -82,6 +83,47 @@ export async function getUsersByEmail(email: string) {
     .from(users)
     .where(sql`lower(${users.email}) = ${normalizedEmail}`)
     .limit(2);
+}
+
+export function resolveUniqueEmailMatch<T>(matches: readonly T[]): T | undefined {
+  if (matches.length > 1) {
+    throw new Error("Multiple customer records share this verified email");
+  }
+  return matches[0];
+}
+
+export async function getUserByEmail(email: string) {
+  return resolveUniqueEmailMatch(await getUsersByEmail(email));
+}
+
+export async function linkExistingUserToFirebase(
+  userId: number,
+  profile: {
+    openId: string;
+    name: string | null;
+    email: string;
+    lastSignedIn: Date;
+  }
+) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  // Deliberately do not set role: account linking must preserve the existing
+  // user's role and must not promote an account based on its email address.
+  const matches = await db
+    .update(users)
+    .set({
+      openId: profile.openId,
+      name: profile.name,
+      email: profile.email,
+      loginMethod: "firebase",
+      lastSignedIn: profile.lastSignedIn,
+      updatedAt: new Date(),
+    })
+    .where(eq(users.id, userId))
+    .returning();
+
+  return matches[0];
 }
 
 export async function relinkUserToSupabase(

@@ -1,9 +1,9 @@
 import { getLoginUrl } from "@/const";
+import { firebaseAuth, firebasePersistenceReady } from "@/lib/firebase";
 import { trpc } from "@/lib/trpc";
-import { isSupabaseConfigured, supabase } from "@/lib/supabase";
+import { signOut, type User as FirebaseUser } from "firebase/auth";
 import { useQueryClient } from "@tanstack/react-query";
-import type { Session } from "@supabase/supabase-js";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type UseAuthOptions = {
   redirectOnUnauthenticated?: boolean;
@@ -13,76 +13,82 @@ type UseAuthOptions = {
 export function useAuth(options?: UseAuthOptions) {
   const { redirectOnUnauthenticated = false, redirectPath = getLoginUrl() } =
     options ?? {};
+  const utils = trpc.useUtils();
   const queryClient = useQueryClient();
-  const [session, setSession] = useState<Session | null>(null);
-  const [sessionLoading, setSessionLoading] = useState(isSupabaseConfigured);
+  const previousUid = useRef<string | null>(firebaseAuth?.currentUser?.uid ?? null);
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(
+    firebaseAuth?.currentUser ?? null
+  );
+  const [authStateLoading, setAuthStateLoading] = useState(Boolean(firebaseAuth));
 
   useEffect(() => {
-    if (!supabase) {
-      setSession(null);
-      setSessionLoading(false);
+    const auth = firebaseAuth;
+    if (!auth) {
+      setFirebaseUser(null);
+      setAuthStateLoading(false);
       return;
     }
-
-    let active = true;
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, nextSession) => {
-      setSession(nextSession);
-      setSessionLoading(false);
-      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
-        window.setTimeout(() => queryClient.clear(), 0);
-      }
+    let disposed = false;
+    let unsubscribe: (() => void) | undefined;
+    void firebasePersistenceReady.then(() => {
+      if (disposed) return;
+      unsubscribe = auth.onIdTokenChanged((user) => {
+        const nextUid = user?.uid ?? null;
+        if (previousUid.current !== nextUid) {
+          previousUid.current = nextUid;
+          queryClient.clear();
+        }
+        setFirebaseUser(user);
+        setAuthStateLoading(false);
+      });
     });
-
-    void supabase.auth.getSession().then(({ data, error }) => {
-      if (!active) return;
-      setSession(error ? null : data.session);
-      setSessionLoading(false);
-    }).catch(() => {
-      if (!active) return;
-      setSession(null);
-      setSessionLoading(false);
-    });
-
     return () => {
-      active = false;
-      subscription.unsubscribe();
+      disposed = true;
+      unsubscribe?.();
     };
   }, [queryClient]);
 
+  const hasVerifiedSession =
+    !authStateLoading && Boolean(firebaseUser?.emailVerified);
   const meQuery = trpc.auth.me.useQuery(undefined, {
-    enabled: Boolean(supabase && session && !sessionLoading),
+    enabled: hasVerifiedSession,
     retry: false,
     refetchOnWindowFocus: false,
   });
 
-  const logout = useCallback(async () => {
-    try {
-      if (supabase) {
-        const { error } = await supabase.auth.signOut();
-        if (error) throw error;
-      }
-    } finally {
-      setSession(null);
-      queryClient.clear();
+  useEffect(() => {
+    if (!firebaseUser) {
+      utils.auth.me.setData(undefined, null);
+      return;
     }
+    if (firebaseUser.emailVerified) {
+      void utils.auth.me.invalidate();
+    }
+  }, [firebaseUser?.uid, firebaseUser?.emailVerified, utils]);
+
+  const logout = useCallback(async () => {
+    if (firebaseAuth) await signOut(firebaseAuth);
+    queryClient.clear();
   }, [queryClient]);
 
-  const user = session ? meQuery.data ?? null : null;
-  const loading = sessionLoading || Boolean(session && meQuery.isLoading);
+  const state = useMemo(() => {
+    const user = hasVerifiedSession ? meQuery.data ?? null : null;
+    return {
+      user,
+      loading: authStateLoading || (hasVerifiedSession && meQuery.isLoading),
+      error: meQuery.error ?? null,
+      isAuthenticated: Boolean(user),
+    };
+  }, [authStateLoading, hasVerifiedSession, meQuery.data, meQuery.error, meQuery.isLoading]);
 
   useEffect(() => {
-    if (!redirectOnUnauthenticated || loading || user) return;
+    if (!redirectOnUnauthenticated || state.loading || state.user) return;
     if (typeof window === "undefined" || window.location.pathname === "/login") return;
     window.location.replace(redirectPath);
-  }, [redirectOnUnauthenticated, loading, user, redirectPath]);
+  }, [redirectOnUnauthenticated, redirectPath, state.loading, state.user]);
 
   return {
-    user,
-    loading,
-    error: meQuery.error ?? null,
-    isAuthenticated: Boolean(session && user),
+    ...state,
     refresh: () => meQuery.refetch(),
     logout,
   };
